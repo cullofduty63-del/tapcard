@@ -1,0 +1,1 @@
+import "./globals.css"; export const metadata={title:"LumoCard",description:"کارت ویزیت هوشمند"}; export default function Layout({children}:{children:React.ReactNode}){return <html lang="fa" dir="rtl"><body>{children}</body></html>}
