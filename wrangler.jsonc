@@ -1,1 +1,14 @@
-{"name":"lumocard","main":".open-next/worker.js","compatibility_date":"2026-10-08","compatibility_flags":["nodejs_compat"],"assets":{"directory":".open-next/assets","binding":"ASSETS"}}
+{
+"name": "lumocard",
+"main": ".open-next/worker.js",
+"compatibility_date": "2026-10-08",
+"compatibility_flags": ["nodejs_compat"],
+"assets": {
+"directory": ".open-next/assets",
+"binding": "ASSETS"
+},
+"vars": {
+"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_-Zd8hvcp9wj3M0BLjDqdrA_ZQ9u5ERn",
+"NEXT_PUBLIC_SUPABASE_URL": "https://amequpgspnrxhglsdpsm.supabase.co"
+}
+}
