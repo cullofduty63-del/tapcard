@@ -1,1 +1,79 @@
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;color:#171717}a{text-decoration:none;color:inherit}nav{height:76px;display:flex;align-items:center;justify-content:space-between;max-width:1150px;margin:auto;padding:0 22px}.logo{font-size:25px;font-weight:900}.logo span,.card span,footer span{color:#E6B800}.button{display:inline-block;background:#E6B800;color:#fff;border:0;border-radius:13px;padding:13px 21px;font-weight:800;cursor:pointer}.hero{max-width:1150px;margin:60px auto 100px;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}.hero small{color:#a07d00;letter-spacing:2px}.hero h1{font-size:90px;line-height:.95;margin:18px 0}.hero em{color:#E6B800;font-style:normal}.hero p{font-size:19px;color:#777;line-height:2}.card{aspect-ratio:1.6;max-width:430px;border-radius:25px;background:linear-gradient(135deg,#fff,#fff 55%,#f3dc67);box-shadow:0 30px 70px #c9b34d55;padding:30px;position:relative}.card i{display:block;width:45px;height:34px;border-radius:8px;background:#E6B800;margin-top:80px}.card strong{position:absolute;bottom:40px;right:30px}.card small{position:absolute;bottom:20px;right:30px;color:#888}.features{max-width:1150px;margin:auto;padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.features article{border:1px solid #eee;border-radius:18px;padding:25px}.features article>b,.adminHead small{color:#b08a00}.features p,.customer p{color:#777}.auth{min-height:100vh;background:#fafafa;display:grid;place-items:center;padding:20px}.box{background:#fff;border:1px solid #eee;border-radius:22px;padding:32px;width:min(430px,100%);text-align:center}.box form{display:grid;gap:11px;margin:22px 0}.box input,.modalBox input,.modalBox textarea{width:100%;padding:14px;border:1px solid #ddd;border-radius:11px}.adminHead{max-width:1150px;margin:45px auto 25px;padding:0 20px;display:flex;justify-content:space-between;align-items:center}.adminHead h1{font-size:38px}.grid{max-width:1150px;margin:auto;padding:0 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.customer{display:flex;align-items:center;gap:12px;border:1px solid #eee;border-radius:17px;padding:16px;background:#fff}.customer small{display:block;color:#999}.customer p{margin:5px 0}.customer>a{margin-right:auto;color:#a07d00}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#fff1a0;font-weight:900}.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:20px}.modalBox{background:#fff;border-radius:22px;padding:28px;width:min(620px,100%);max-height:90vh;overflow:auto}.modalBox>*{margin-bottom:10px}.close{float:left;border:0;background:none;font-size:28px}.apps{display:flex;flex-wrap:wrap;gap:6px}.apps button{border:0;border-radius:20px;padding:8px 11px;cursor:pointer}.full{width:100%}.profile{min-height:100vh;display:grid;place-items:center;padding:25px}.pbox{width:min(450px,100%);text-align:center}.pavatar{width:105px;height:105px;margin:auto;border-radius:50%;background:#f5df72;display:grid;place-items:center;font-size:38px;font-weight:900;overflow:hidden}.pavatar img{width:100%;height:100%;object-fit:cover}.pbox h1{font-size:32px;margin:15px 0 5px}.pbox>b{color:#777}.pbox>p{color:#666;line-height:1.9}.buttons{display:grid;gap:10px;margin-top:25px}.buttons a{color:#fff;padding:15px;border-radius:14px;font-weight:800}.pbox footer{margin-top:30px;font-weight:900}@media(max-width:800px){.hero{grid-template-columns:1fr;margin-top:20px}.hero h1{font-size:62px}.features,.grid{grid-template-columns:1fr}.adminHead{align-items:flex-start;gap:20px;flex-direction:column}}
+@import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+
+:root{color-scheme:light;--bg:#fff;--ink:#111;--muted:#777;--line:#e9e9e9;--soft:#f7f7f7;--radius:22px;--shadow:0 18px 55px #0000000a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font:inherit}
+button,a{ -webkit-tap-highlight-color:transparent }
+button{cursor:pointer}
+nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:1160px;margin:auto;padding:0 24px}
+.logo{display:inline-flex;align-items:center;direction:ltr;font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:29px;font-weight:900;letter-spacing:-1px;line-height:1;color:var(--ink)}
+.logo span,.card span,footer span{color:inherit}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border:1px solid var(--ink);border-radius:14px;background:var(--ink);color:#fff;font-weight:800;line-height:1.3;transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease}
+.button:hover{transform:translateY(-2px);background:#333;box-shadow:0 8px 24px #00000015}
+.button:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #888;outline-offset:3px}
+.ghost{border:1px solid var(--line);border-radius:13px;padding:10px 17px;background:#fff;color:var(--ink);font-weight:700;transition:background .2s}
+.ghost:hover{background:var(--soft)}
+.hero{max-width:1160px;margin:60px auto 112px;padding:24px;display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:center}
+.hero small{display:inline-block;color:#666;letter-spacing:1.5px;font:700 12px/1.5 "Vazirmatn",Tahoma,sans-serif}
+.hero h1{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:clamp(64px,8vw,100px);line-height:1.05;letter-spacing:-1.8px;margin:20px 0 18px;font-weight:900}
+.hero em{color:var(--ink);font-style:normal;text-decoration:underline;text-decoration-thickness:5px;text-underline-offset:8px}
+.hero p{max-width:520px;font-size:18px;color:var(--muted);line-height:2;margin:0 0 26px}
+.card{aspect-ratio:1.6;width:100%;max-width:450px;justify-self:center;border:1px solid #222;border-radius:28px;background:#111;color:#fff;box-shadow:0 28px 65px #00000018;padding:30px;position:relative;overflow:hidden;transform:rotate(2deg);transition:transform .25s ease}
+.card:hover{transform:rotate(0) translateY(-4px)}
+.card:after{content:"";position:absolute;width:190px;height:190px;border:1px solid #ffffff24;border-radius:50%;left:-55px;top:-55px;box-shadow:0 0 0 24px #ffffff08,0 0 0 48px #ffffff06}
+.card b{font-size:24px;position:relative;z-index:1}
+.card i{display:block;width:43px;height:32px;border:1px solid #ffffff88;border-radius:8px;background:linear-gradient(135deg,#fff,#bbb);margin-top:76px;position:relative;z-index:1}
+.card strong{position:absolute;bottom:38px;right:30px;font-size:22px}
+.card small{position:absolute;bottom:18px;right:30px;color:#aaa;letter-spacing:.5px}
+.features{max-width:1160px;margin:0 auto 90px;padding:0 24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.features article{border:1px solid var(--line);border-radius:20px;padding:27px;background:#fff;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.features article:hover{transform:translateY(-4px);border-color:#aaa;box-shadow:var(--shadow)}
+.features article>b,.adminHead small{color:#666;font:800 12px/1.5 "Vazirmatn",Tahoma,sans-serif;letter-spacing:1.5px}
+.features h3{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:24px;margin:12px 0 4px}
+.features p,.customer p{color:var(--muted);line-height:1.9}
+.auth{min-height:100vh;background:#fff;display:grid;place-items:center;padding:24px;position:relative;isolation:isolate}
+.auth:before{content:"";position:absolute;inset:18px;border:1px solid var(--line);border-radius:28px;pointer-events:none;z-index:-1}
+.box{background:#fff;border:1px solid var(--line);border-radius:26px;padding:38px;width:min(440px,100%);text-align:center;box-shadow:var(--shadow)}
+.box h1{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:38px;line-height:1.2;margin:24px 0 10px}
+.box form{display:grid;gap:13px;margin:24px 0}
+.box input,.modalBox input,.modalBox textarea{width:100%;min-height:49px;padding:13px 15px;border:1px solid #ddd;border-radius:13px;background:#fff;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.box input:focus,.modalBox input:focus,.modalBox textarea:focus{border-color:#111;box-shadow:0 0 0 3px #0000000a}
+.box form .button{width:100%}
+.box>p{font-size:14px;color:#555;overflow-wrap:anywhere}
+.box>a:last-child:not(.logo){display:inline-block;margin-top:8px;text-decoration:underline;text-underline-offset:4px}
+.adminHead{max-width:1160px;margin:45px auto 25px;padding:0 24px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.adminHead h1{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:40px;line-height:1.2;margin:8px 0}
+.grid{max-width:1160px;margin:0 auto;padding:0 24px 60px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.customer{min-width:0;display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:19px;padding:16px;background:#fff;transition:border-color .2s,transform .2s}
+.customer:hover{border-color:#aaa;transform:translateY(-2px)}
+.customer small{display:block;color:#888;overflow-wrap:anywhere}
+.customer p{margin:5px 0;font-size:14px}
+.customer>a{margin-right:auto;color:#111;text-decoration:underline;text-underline-offset:4px;font-weight:700}
+.avatar{flex:0 0 48px;width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:#111;color:#fff;font-weight:900;font-size:22px}
+.modal{position:fixed;inset:0;background:#0009;backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px;z-index:10}
+.modalBox{background:#fff;border:1px solid var(--line);border-radius:25px;padding:28px;width:min(620px,100%);max-height:90vh;overflow:auto;box-shadow:0 25px 90px #0002}
+.modalBox>*{margin-bottom:10px}
+.modalBox h2{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:30px;margin-top:0}
+.close{float:left;border:1px solid var(--line);border-radius:10px;background:#fff;color:#111;font-size:25px;width:40px;height:40px}
+.apps{display:flex;flex-wrap:wrap;gap:7px}
+.apps button{border:1px solid #ddd!important;border-radius:20px;padding:8px 12px;cursor:pointer;background:#fff!important;color:#111!important;transition:background .2s,color .2s}
+.apps button:hover{background:#111!important;color:#fff!important}
+.full{width:100%}
+.modalBox label{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:14px 0;color:#444}
+.modalBox input[type=color]{width:60px;min-height:38px;padding:3px}
+.profile{min-height:100vh;display:grid;place-items:center;padding:28px;background:#fff!important;color:#111}
+.pbox{width:min(450px,100%);text-align:center;padding:35px 26px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:var(--shadow)}
+.pavatar{width:105px;height:105px;margin:auto;border:1px solid var(--line);border-radius:28px;background:#111;color:#fff;display:grid;place-items:center;font-size:38px;font-weight:900;overflow:hidden}
+.pavatar img{width:100%;height:100%;object-fit:cover}
+.pbox h1{font-family:"B Koodak","Lalezar","Vazirmatn",Tahoma,sans-serif;font-size:35px;margin:15px 0 5px}
+.pbox>b{color:#555}
+.pbox>p{color:#666;line-height:1.9}
+.buttons{display:grid;gap:10px;margin-top:25px}
+.buttons a{background:#111!important;color:#fff;padding:15px;border-radius:14px;font-weight:800;transition:transform .2s,background .2s}
+.buttons a:hover{transform:translateY(-2px);background:#333!important}
+.pbox footer{margin-top:30px;font-weight:900;direction:ltr;font-size:20px}
+@media(max-width:800px){nav{height:72px;padding:0 18px}.hero{grid-template-columns:1fr;gap:42px;margin:20px auto 70px;padding:20px}.hero h1{font-size:clamp(58px,13vw,78px)}.hero p{font-size:16px}.card{max-width:410px}.features,.grid{grid-template-columns:1fr;padding-left:20px;padding-right:20px}.features{margin-bottom:60px}.adminHead{align-items:flex-start;gap:15px;flex-direction:column;margin-top:30px;padding:0 20px}.adminHead h1{font-size:34px}.box{padding:30px 23px}.auth:before{inset:10px}.modalBox{padding:22px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
