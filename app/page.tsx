@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 const INSTAGRAM_URL = "https://www.instagram.com/lumocard/";
@@ -243,7 +245,6 @@ export default function Home() {
           --muted: #a1a1aa;
           --purple: #a78bfa;
           --purple-bright: #c4b5fd;
-
           min-height: 100vh;
           overflow: hidden;
           background: var(--bg);
@@ -422,10 +423,7 @@ export default function Home() {
           font-size: 13px;
           font-weight: 800;
           box-shadow: 0 8px 35px rgba(124, 58, 237, 0.2);
-          transition:
-            transform 0.25s ease,
-            box-shadow 0.25s ease,
-            filter 0.25s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
         }
 
         .primary-btn:hover {
@@ -523,13 +521,8 @@ export default function Home() {
           overflow: hidden;
           border: 1px solid rgba(255, 255, 255, 0.17);
           border-radius: 27px;
-          background:
-            radial-gradient(ellipse at 90% 0%, rgba(139, 92, 246, 0.16), transparent 45%),
-            linear-gradient(145deg, #19191f, #0d0d10 72%);
-          box-shadow:
-            0 35px 90px rgba(0, 0, 0, 0.5),
-            0 0 65px rgba(124, 58, 237, 0.08),
-            inset 0 1px rgba(255, 255, 255, 0.08);
+          background: radial-gradient(ellipse at 90% 0%, rgba(139, 92, 246, 0.16), transparent 45%), linear-gradient(145deg, #19191f, #0d0d10 72%);
+          box-shadow: 0 35px 90px rgba(0, 0, 0, 0.5), 0 0 65px rgba(124, 58, 237, 0.08), inset 0 1px rgba(255, 255, 255, 0.08);
           transform: rotate(-4deg);
           animation: floatCard 5s ease-in-out infinite;
         }
@@ -543,9 +536,7 @@ export default function Home() {
           border: 1px solid rgba(196, 181, 253, 0.12);
           border-radius: 50%;
           content: "";
-          box-shadow:
-            0 0 0 22px rgba(196, 181, 253, 0.025),
-            0 0 0 45px rgba(196, 181, 253, 0.02);
+          box-shadow: 0 0 0 22px rgba(196, 181, 253, 0.025), 0 0 0 45px rgba(196, 181, 253, 0.02);
           pointer-events: none;
         }
 
@@ -764,10 +755,7 @@ export default function Home() {
           border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 20px;
           background: linear-gradient(145deg, #151519, #0e0e11);
-          transition:
-            transform 0.3s ease,
-            border-color 0.3s ease,
-            background 0.3s ease;
+          transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
         }
 
         .feature-card:hover {
@@ -922,8 +910,7 @@ export default function Home() {
         }
 
         @keyframes floatCard {
-          0%,
-          100% {
+          0%, 100% {
             transform: translateY(0) rotate(-4deg);
           }
           50% {
@@ -932,8 +919,7 @@ export default function Home() {
         }
 
         @keyframes floatSmall {
-          0%,
-          100% {
+          0%, 100% {
             transform: translateY(0);
           }
           50% {
