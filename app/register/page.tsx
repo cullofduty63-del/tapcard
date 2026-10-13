@@ -113,9 +113,7 @@ Lumo<span>Card</span> </Link>
     {m && <p role="status">{m}</p>}
 
     <Link href="/login">ورود</Link>
-  </div>
-</main>
-```
-
-);
+      </div>
+    </main>
+  );
 }
