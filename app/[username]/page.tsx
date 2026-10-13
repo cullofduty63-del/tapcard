@@ -461,10 +461,10 @@ export default function ProfilePage() {
     setAppearance((prev) => ({ ...prev, [key]: value }));
   }
 
-  const cardAppearance = {
-    ...defaultAppearance,
-    ...(profile.appearance ?? {}),
-  };
+const cardAppearance = {
+  ...defaultAppearance,
+  ...(profile.appearance ?? {}),
+};
 
   const cardStyle: React.CSSProperties = {
     color: cardAppearance.textColor,
