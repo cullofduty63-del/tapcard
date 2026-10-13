@@ -1,5 +1,7 @@
-```tsx
+tsx
 import Link from "next/link";
+
+const INSTAGRAM_URL = "https://www.instagram.com/lumocard/";
 
 const features = [
   {
@@ -69,12 +71,12 @@ export default function Home() {
 
           <div className="hero-actions">
             <a
-              href="https://t.me/lumusupport"
+              href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="primary-btn"
             >
-              خرید از ما
+              اینستاگرام LumoCard
               <span className="btn-arrow">↗</span>
             </a>
 
@@ -197,11 +199,11 @@ export default function Home() {
         </h2>
 
         <p>
-          برای سفارش کارت اختصاصی LumoCard با پشتیبانی ما در ارتباط باش.
+          برای سفارش کارت اختصاصی LumoCard از طریق اینستاگرام با ما در ارتباط باش.
         </p>
 
         <a
-          href="https://t.me/lumusupport"
+          href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="primary-btn cta-button"
@@ -221,12 +223,12 @@ export default function Home() {
         <p>ارتباطات بهتر، با یک لمس.</p>
 
         <a
-          href="https://t.me/lumusupport"
+          href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="support-link"
         >
-          پشتیبانی تلگرام ↗
+          اینستاگرام LumoCard ↗
         </a>
 
         <span className="copyright">
@@ -1020,7 +1022,7 @@ export default function Home() {
 
           .hero {
             width: calc(100% - 32px);
-            padding: 55px 0 55px;
+            padding: 55px 0;
           }
 
           .hero h1 {
