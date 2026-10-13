@@ -5,6 +5,16 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+type Appearance = {
+  backgroundType: "solid" | "gradient" | "image";
+  backgroundColor: string;
+  backgroundEndColor: string;
+  accentColor: string;
+  textColor: string;
+  animation: "none" | "float" | "glow";
+  backgroundImage: string;
+};
+
 type Profile = {
   id: string;
   username: string;
@@ -17,6 +27,7 @@ type Profile = {
   website: string | null;
   location: string | null;
   social_links: Record<string, string> | null;
+  appearance?: Appearance | null;
 };
 
 type Social = {
@@ -25,6 +36,17 @@ type Social = {
   category: "iranian" | "international";
   icon: string;
   baseUrl: string;
+  slug?: string;
+};
+
+const defaultAppearance: Appearance = {
+  backgroundType: "gradient",
+  backgroundColor: "#09090f",
+  backgroundEndColor: "#251044",
+  accentColor: "#a855f7",
+  textColor: "#ffffff",
+  animation: "float",
+  backgroundImage: "",
 };
 
 const jobs: { category: string; items: string[] }[] = [
@@ -200,177 +222,39 @@ const jobs: { category: string; items: string[] }[] = [
 ];
 
 const socials: Social[] = [
-  {
-    id: "instagram",
-    name: "اینستاگرام",
-    category: "international",
-    icon: "📸",
-    baseUrl: "https://instagram.com/",
-  },
-  {
-    id: "telegram",
-    name: "تلگرام",
-    category: "international",
-    icon: "✈️",
-    baseUrl: "https://t.me/",
-  },
-  {
-    id: "whatsapp",
-    name: "واتساپ",
-    category: "international",
-    icon: "💬",
-    baseUrl: "https://wa.me/",
-  },
-  {
-    id: "youtube",
-    name: "یوتیوب",
-    category: "international",
-    icon: "▶️",
-    baseUrl: "https://youtube.com/",
-  },
-  {
-    id: "tiktok",
-    name: "تیک‌تاک",
-    category: "international",
-    icon: "🎵",
-    baseUrl: "https://tiktok.com/@",
-  },
-  {
-    id: "linkedin",
-    name: "لینکدین",
-    category: "international",
-    icon: "💼",
-    baseUrl: "https://linkedin.com/in/",
-  },
-  {
-    id: "discord",
-    name: "دیسکورد",
-    category: "international",
-    icon: "🎮",
-    baseUrl: "https://discord.com/users/",
-  },
-  {
-    id: "x",
-    name: "ایکس (توییتر)",
-    category: "international",
-    icon: "𝕏",
-    baseUrl: "https://x.com/",
-  },
-  {
-    id: "facebook",
-    name: "فیسبوک",
-    category: "international",
-    icon: "📘",
-    baseUrl: "https://facebook.com/",
-  },
-  {
-    id: "twitch",
-    name: "توییچ",
-    category: "international",
-    icon: "🟣",
-    baseUrl: "https://twitch.tv/",
-  },
-  {
-    id: "github",
-    name: "گیت‌هاب",
-    category: "international",
-    icon: "💻",
-    baseUrl: "https://github.com/",
-  },
-  {
-    id: "pinterest",
-    name: "پینترست",
-    category: "international",
-    icon: "📌",
-    baseUrl: "https://pinterest.com/",
-  },
-  {
-    id: "snapchat",
-    name: "اسنپ‌چت",
-    category: "international",
-    icon: "👻",
-    baseUrl: "https://snapchat.com/add/",
-  },
-  {
-    id: "threads",
-    name: "تردز",
-    category: "international",
-    icon: "🧵",
-    baseUrl: "https://threads.net/@",
-  },
-  {
-    id: "website",
-    name: "وب‌سایت",
-    category: "international",
-    icon: "🌐",
-    baseUrl: "https://",
-  },
-  {
-    id: "bale",
-    name: "بله",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://ble.ir/",
-  },
-  {
-    id: "eitaa",
-    name: "ایتا",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://eitaa.com/",
-  },
-  {
-    id: "rubika",
-    name: "روبیکا",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://rubika.ir/",
-  },
-  {
-    id: "soroush",
-    name: "سروش پلاس",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://splus.ir/",
-  },
-  {
-    id: "igap",
-    name: "آیگپ",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://igap.net/",
-  },
-  {
-    id: "gap",
-    name: "گپ",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://gap.im/",
-  },
-  {
-    id: "virasty",
-    name: "ویراستی",
-    category: "iranian",
-    icon: "🇮🇷",
-    baseUrl: "https://virasty.com/",
-  },
+  { id: "instagram", name: "اینستاگرام", category: "international", icon: "◎", slug: "instagram", baseUrl: "https://instagram.com/" },
+  { id: "telegram", name: "تلگرام", category: "international", icon: "➤", slug: "telegram", baseUrl: "https://t.me/" },
+  { id: "whatsapp", name: "واتساپ", category: "international", icon: "◉", slug: "whatsapp", baseUrl: "https://wa.me/" },
+  { id: "youtube", name: "یوتیوب", category: "international", icon: "▶", slug: "youtube", baseUrl: "https://youtube.com/" },
+  { id: "tiktok", name: "تیک‌تاک", category: "international", icon: "♫", slug: "tiktok", baseUrl: "https://tiktok.com/@" },
+  { id: "linkedin", name: "لینکدین", category: "international", icon: "in", slug: "linkedin", baseUrl: "https://linkedin.com/in/" },
+  { id: "discord", name: "دیسکورد", category: "international", icon: "◈", slug: "discord", baseUrl: "https://discord.com/users/" },
+  { id: "x", name: "ایکس", category: "international", icon: "𝕏", slug: "x", baseUrl: "https://x.com/" },
+  { id: "facebook", name: "فیسبوک", category: "international", icon: "f", slug: "facebook", baseUrl: "https://facebook.com/" },
+  { id: "twitch", name: "توییچ", category: "international", icon: "▣", slug: "twitch", baseUrl: "https://twitch.tv/" },
+  { id: "github", name: "گیت‌هاب", category: "international", icon: "⌘", slug: "github", baseUrl: "https://github.com/" },
+  { id: "pinterest", name: "پینترست", category: "international", icon: "P", slug: "pinterest", baseUrl: "https://pinterest.com/" },
+  { id: "snapchat", name: "اسنپ‌چت", category: "international", icon: "👻", slug: "snapchat", baseUrl: "https://snapchat.com/add/" },
+  { id: "threads", name: "تردز", category: "international", icon: "@", slug: "threads", baseUrl: "https://threads.net/@" },
+  { id: "website", name: "وب‌سایت", category: "international", icon: "↗", baseUrl: "https://" },
+  { id: "bale", name: "بله", category: "iranian", icon: "ب", baseUrl: "https://ble.ir/" },
+  { id: "eitaa", name: "ایتا", category: "iranian", icon: "ا", baseUrl: "https://eitaa.com/" },
+  { id: "rubika", name: "روبیکا", category: "iranian", icon: "ر", baseUrl: "https://rubika.ir/" },
+  { id: "soroush", name: "سروش پلاس", category: "iranian", icon: "س", baseUrl: "https://splus.ir/" },
+  { id: "igap", name: "آیگپ", category: "iranian", icon: "آ", baseUrl: "https://igap.net/" },
+  { id: "gap", name: "گپ", category: "iranian", icon: "گ", baseUrl: "https://gap.im/" },
+  { id: "virasty", name: "ویراستی", category: "iranian", icon: "و", baseUrl: "https://virasty.com/" },
 ];
 
-const jobOptions = Array.from(
-  new Set(jobs.flatMap((category) => category.items))
-);
+const jobOptions = Array.from(new Set(jobs.flatMap((group) => group.items)));
 
 function makeSocialUrl(id: string, value: string) {
   const clean = value.trim();
-
   if (!clean) return "";
 
-  if (/^https?:\/\//i.test(clean)) {
-    return clean;
-  }
+  if (/^https?:\/\//i.test(clean)) return clean;
 
   const social = socials.find((item) => item.id === id);
-
   if (!social) return clean;
 
   if (id === "whatsapp") {
@@ -379,10 +263,30 @@ function makeSocialUrl(id: string, value: string) {
   }
 
   if (id === "website") {
-    return `https://${clean.replace(/^\/+/, "")}`;
+    return /^https?:\/\//i.test(clean) ? clean : `https://${clean}`;
   }
 
   return social.baseUrl + clean.replace(/^@/, "").replace(/^\/+/, "");
+}
+
+function SocialIcon({ social }: { social: Social }) {
+  if (social.slug) {
+    return (
+      <span className="lum-social-icon">
+        <img
+          src={`https://cdn.simpleicons.org/${social.slug}`}
+          alt=""
+          loading="lazy"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+        <span>{social.icon}</span>
+      </span>
+    );
+  }
+
+  return <span className="lum-social-icon">{social.icon}</span>;
 }
 
 export default function ProfilePage() {
@@ -398,6 +302,9 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [socialDraft, setSocialDraft] = useState<Record<string, string>>({});
   const [customJob, setCustomJob] = useState(false);
+  const [appearance, setAppearance] = useState<Appearance>(defaultAppearance);
+  const [selectedSocial, setSelectedSocial] = useState<Record<string, boolean>>({});
+  const [socialSearch, setSocialSearch] = useState("");
 
   const isOwner = !!profile && userId === profile.id;
 
@@ -414,27 +321,29 @@ export default function ProfilePage() {
 
       const { data, error: profileError } = await supabase
         .from("profiles")
-        .select(
-          "id, username, full_name, job, bio, avatar_url, phone, email, website, location, social_links"
-        )
+        .select("id, username, full_name, job, bio, avatar_url, phone, email, website, location, social_links, appearance")
         .eq("username", username)
         .maybeSingle();
 
       if (profileError) {
         console.error(profileError);
-        setError(
-          "اطلاعات کارت دریافت نشد. ستون social_links و تنظیمات Supabase را بررسی کن."
-        );
+        setError("اطلاعات کارت دریافت نشد. مطمئن شو ستون‌های social_links و appearance در Supabase ساخته شده‌اند.");
         setProfile(null);
         return;
       }
 
       if (data) {
         const loaded = data as Profile;
-
         setProfile(loaded);
         setForm(loaded);
         setSocialDraft(loaded.social_links ?? {});
+        setAppearance({ ...defaultAppearance, ...(loaded.appearance ?? {}) });
+
+        const chosen: Record<string, boolean> = {};
+        Object.entries(loaded.social_links ?? {}).forEach(([id, value]) => {
+          if (value) chosen[id] = true;
+        });
+        setSelectedSocial(chosen);
       } else {
         setProfile(null);
       }
@@ -459,6 +368,10 @@ export default function ProfilePage() {
     setSocialDraft((prev) => ({ ...prev, [id]: value }));
   }
 
+  function toggleSocial(id: string) {
+    setSelectedSocial((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
   async function saveChanges() {
     if (!profile || !isOwner || saving) return;
 
@@ -469,11 +382,9 @@ export default function ProfilePage() {
       const socialLinks: Record<string, string> = {};
 
       for (const social of socials) {
+        if (!selectedSocial[social.id]) continue;
         const value = socialDraft[social.id]?.trim();
-
-        if (value) {
-          socialLinks[social.id] = makeSocialUrl(social.id, value);
-        }
+        if (value) socialLinks[social.id] = makeSocialUrl(social.id, value);
       }
 
       const updates = {
@@ -486,28 +397,27 @@ export default function ProfilePage() {
         website: form.website?.trim() || null,
         location: form.location?.trim() || null,
         social_links: socialLinks,
+        appearance,
       };
 
       const { data, error: updateError } = await supabase
         .from("profiles")
         .update(updates)
         .eq("id", profile.id)
-        .select(
-          "id, username, full_name, job, bio, avatar_url, phone, email, website, location, social_links"
-        )
+        .select("id, username, full_name, job, bio, avatar_url, phone, email, website, location, social_links, appearance")
         .maybeSingle();
 
       if (updateError || !data) {
         console.error(updateError);
-        setError(
-          "ذخیره انجام نشد. ستون social_links و مجوز ویرایش پروفایل را در Supabase بررسی کن."
-        );
+        setError("ذخیره انجام نشد. وجود ستون appearance و مجوز ویرایش در Supabase را بررسی کن.");
         return;
       }
 
-      setProfile(data as Profile);
-      setForm(data as Profile);
-      setSocialDraft((data as Profile).social_links ?? {});
+      const saved = data as Profile;
+      setProfile(saved);
+      setForm(saved);
+      setSocialDraft(saved.social_links ?? {});
+      setAppearance({ ...defaultAppearance, ...(saved.appearance ?? {}) });
       setEditing(false);
     } catch (err) {
       console.error(err);
@@ -519,12 +429,10 @@ export default function ProfilePage() {
 
   async function logout() {
     const { error: logoutError } = await supabase.auth.signOut();
-
     if (logoutError) {
       setError("خروج انجام نشد. دوباره تلاش کن.");
       return;
     }
-
     setUserId(null);
     setEditing(false);
     setError("");
@@ -549,27 +457,44 @@ export default function ProfilePage() {
     );
   }
 
+  function updateAppearance(key: keyof Appearance, value: string) {
+    setAppearance((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const cardAppearance = {
+    ...defaultAppearance,
+    ...(profile.appearance ?? {}),
+  };
+
+  const cardStyle: React.CSSProperties = {
+    color: cardAppearance.textColor,
+    borderColor: `${cardAppearance.accentColor}80`,
+    background:
+      cardAppearance.backgroundType === "image" && cardAppearance.backgroundImage
+        ? `linear-gradient(#09090f88, #09090f88), url("${cardAppearance.backgroundImage}") center/cover`
+        : cardAppearance.backgroundType === "solid"
+          ? cardAppearance.backgroundColor
+          : `linear-gradient(145deg, ${cardAppearance.backgroundColor}, ${cardAppearance.backgroundEndColor})`,
+    boxShadow: `0 0 35px ${cardAppearance.accentColor}25`,
+  };
+
   if (loading) {
     return (
-      <main className="profile" dir="rtl">
-        <div className="pbox">
-          <p>در حال بارگذاری کارت...</p>
-        </div>
+      <main className="profile lum-profile" dir="rtl">
+        <div className="pbox"><p>در حال بارگذاری کارت...</p></div>
       </main>
     );
   }
 
   if (!profile) {
     return (
-      <main className="profile" dir="rtl">
+      <main className="profile lum-profile" dir="rtl">
         <div className="pbox">
           <div className="pavatar">✦</div>
           <h1>کارت پیدا نشد!</h1>
           <p>نام کاربری را بررسی کن یا بعداً دوباره تلاش کن.</p>
           {error && <p role="alert">{error}</p>}
-          <Link href="/" className="button">
-            بازگشت به صفحه اصلی
-          </Link>
+          <Link href="/" className="button">بازگشت به صفحه اصلی</Link>
         </div>
       </main>
     );
@@ -579,10 +504,7 @@ export default function ProfilePage() {
     <main className="profile lum-profile" dir="rtl">
       <div className="lum-profile-wrap">
         <header className="lum-profile-header">
-          <Link href="/" className="logo">
-            Lumo<span>Card</span>
-          </Link>
-
+          <Link href="/" className="logo">Lumo<span>Card</span></Link>
           {isOwner && (
             <div className="lum-header-actions">
               <button
@@ -592,15 +514,20 @@ export default function ProfilePage() {
                   if (editing) {
                     setForm(profile);
                     setSocialDraft(profile.social_links ?? {});
+                    setAppearance({ ...defaultAppearance, ...(profile.appearance ?? {}) });
+                    const chosen: Record<string, boolean> = {};
+                    Object.entries(profile.social_links ?? {}).forEach(([id, value]) => {
+                      if (value) chosen[id] = true;
+                    });
+                    setSelectedSocial(chosen);
                     setCustomJob(false);
                     setEditing(false);
                     setError("");
                   } else {
                     setForm(profile);
                     setSocialDraft(profile.social_links ?? {});
-                    setCustomJob(
-                      !!profile.job && !jobOptions.includes(profile.job)
-                    );
+                    setAppearance({ ...defaultAppearance, ...(profile.appearance ?? {}) });
+                    setCustomJob(!!profile.job && !jobOptions.includes(profile.job));
                     setEditing(true);
                     setError("");
                   }
@@ -608,14 +535,7 @@ export default function ProfilePage() {
               >
                 {editing ? "لغو ویرایش" : "✏️ ویرایش کارت"}
               </button>
-
-              <button
-                type="button"
-                className="ghost"
-                onClick={logout}
-              >
-                خروج
-              </button>
+              <button type="button" className="ghost" onClick={logout}>خروج</button>
             </div>
           )}
         </header>
@@ -625,11 +545,12 @@ export default function ProfilePage() {
             <div className="lum-editor-heading">
               <span className="lum-eyebrow">LUMOCARD STUDIO</span>
               <h1>شخصی‌سازی کارت</h1>
-              <p>اطلاعاتت رو وارد کن و در پایان ذخیره رو بزن.</p>
+              <p>اطلاعات، شبکه‌های اجتماعی و ظاهر کارتت رو تغییر بده.</p>
             </div>
 
             {input("full_name", "نام و نام خانوادگی", "مثلاً سامیار")}
-            <div className="lum-field">
+
+            <label className="lum-field">
               <span>انتخاب شغل</span>
               <select
                 value={customJob ? "__custom__" : String(form.job ?? "")}
@@ -646,27 +567,16 @@ export default function ProfilePage() {
                 <option value="">انتخاب شغل...</option>
                 {jobs.map((group) => (
                   <optgroup key={group.category} label={group.category}>
-                    {group.items.map((job) => (
-                      <option key={job} value={job}>
-                        {job}
-                      </option>
-                    ))}
+                    {group.items.map((job) => <option key={job} value={job}>{job}</option>)}
                   </optgroup>
                 ))}
                 <option value="__custom__">شغل من در فهرست نیست</option>
               </select>
-            </div>
+            </label>
 
-            {customJob &&
-              input("job", "شغل دلخواه", "شغل خودت را بنویس")}
-
-            {input(
-              "avatar_url",
-              "لینک عکس پروفایل",
-              "https://example.com/photo.jpg"
-            )}
-
-            {input("phone", "شماره تماس", "شماره‌ای که می‌خواهی نمایش داده شود", "tel")}
+            {customJob && input("job", "شغل دلخواه", "شغل خودت را بنویس")}
+            {input("avatar_url", "لینک عکس پروفایل", "https://example.com/photo.jpg")}
+            {input("phone", "شماره تماس", "شماره تماس", "tel")}
             {input("email", "ایمیل عمومی", "name@example.com", "email")}
             {input("website", "وب‌سایت", "https://example.com")}
             {input("location", "موقعیت مکانی", "مثلاً تهران")}
@@ -681,133 +591,184 @@ export default function ProfilePage() {
               />
             </label>
 
-            <div className="lum-social-section">
+            <section className="lum-customizer">
+              <span className="lum-eyebrow">CARD DESIGN</span>
+              <h2>🎨 طراحی کارت</h2>
+              <p>رنگ و پس‌زمینه کارت رو مطابق سلیقه‌ات تغییر بده.</p>
+
+              <label className="lum-field">
+                <span>نوع پس‌زمینه</span>
+                <select
+                  value={appearance.backgroundType}
+                  onChange={(e) => updateAppearance("backgroundType", e.target.value)}
+                >
+                  <option value="gradient">گرادیانت</option>
+                  <option value="solid">تک‌رنگ</option>
+                  <option value="image">تصویر پس‌زمینه</option>
+                </select>
+              </label>
+
+              <div className="lum-color-grid">
+                <label className="lum-field">
+                  <span>رنگ اصلی</span>
+                  <input type="color" value={appearance.backgroundColor} onChange={(e) => updateAppearance("backgroundColor", e.target.value)} />
+                </label>
+                <label className="lum-field">
+                  <span>رنگ دوم</span>
+                  <input type="color" value={appearance.backgroundEndColor} onChange={(e) => updateAppearance("backgroundEndColor", e.target.value)} />
+                </label>
+                <label className="lum-field">
+                  <span>رنگ تأکیدی</span>
+                  <input type="color" value={appearance.accentColor} onChange={(e) => updateAppearance("accentColor", e.target.value)} />
+                </label>
+                <label className="lum-field">
+                  <span>رنگ نوشته‌ها</span>
+                  <input type="color" value={appearance.textColor} onChange={(e) => updateAppearance("textColor", e.target.value)} />
+                </label>
+              </div>
+
+              {appearance.backgroundType === "image" && (
+                <label className="lum-field">
+                  <span>لینک تصویر پس‌زمینه</span>
+                  <input
+                    value={appearance.backgroundImage}
+                    onChange={(e) => updateAppearance("backgroundImage", e.target.value)}
+                    placeholder="https://example.com/background.jpg"
+                    dir="ltr"
+                  />
+                </label>
+              )}
+
+              <label className="lum-field">
+                <span>انیمیشن</span>
+                <select value={appearance.animation} onChange={(e) => updateAppearance("animation", e.target.value)}>
+                  <option value="none">بدون انیمیشن</option>
+                  <option value="float">حرکت شناور</option>
+                  <option value="glow">درخشش نئونی</option>
+                </select>
+              </label>
+
+              <div
+                className={`lum-preview lum-animation-${appearance.animation}`}
+                style={{
+                  color: appearance.textColor,
+                  borderColor: appearance.accentColor,
+                  background: appearance.backgroundType === "image" && appearance.backgroundImage
+                    ? `linear-gradient(#09090f88,#09090f88),url("${appearance.backgroundImage}") center/cover`
+                    : appearance.backgroundType === "solid"
+                      ? appearance.backgroundColor
+                      : `linear-gradient(145deg,${appearance.backgroundColor},${appearance.backgroundEndColor})`,
+                  boxShadow: `0 0 25px ${appearance.accentColor}35`,
+                }}
+              >
+                <div className="lum-preview-avatar" style={{ borderColor: appearance.accentColor }}>✦</div>
+                <strong>{form.full_name || "نام شما"}</strong>
+                <span>{form.job || "عنوان شغلی"}</span>
+                <small>نمونه کارت LumoCard</small>
+              </div>
+            </section>
+
+            <section className="lum-social-section">
               <div className="lum-social-heading">
                 <span className="lum-eyebrow">SOCIAL MEDIA</span>
                 <h2>شبکه‌های اجتماعی</h2>
-                <p>
-                  نام کاربری یا لینک کامل هر شبکه را وارد کن. هر موردی را
-                  خالی بگذاری، روی کارت نمایش داده نمی‌شود.
-                </p>
+                <p>روی آیکون برنامه‌هایی که می‌خواهی نمایش داده شوند بزن، سپس آیدی آن‌ها را وارد کن.</p>
               </div>
 
-              <h3>🇮🇷 شبکه‌های ایرانی</h3>
-              <div className="lum-social-form">
+              <input
+                className="lum-social-search"
+                value={socialSearch}
+                onChange={(e) => setSocialSearch(e.target.value)}
+                placeholder="🔎 جستجوی شبکه اجتماعی..."
+              />
+
+              <div className="lum-app-picker">
                 {socials
-                  .filter((item) => item.category === "iranian")
+                  .filter((social) => social.name.includes(socialSearch.trim()))
                   .map((social) => (
-                    <label className="lum-field" key={social.id}>
-                      <span>
-                        {social.icon} {social.name}
-                      </span>
-                      <input
-                        value={socialDraft[social.id] ?? ""}
-                        onChange={(e) =>
-                          updateSocial(social.id, e.target.value)
-                        }
-                        placeholder="نام کاربری یا لینک"
-                        dir="ltr"
-                      />
-                    </label>
+                    <button
+                      type="button"
+                      key={social.id}
+                      className={`lum-app-option ${selectedSocial[social.id] ? "selected" : ""}`}
+                      onClick={() => toggleSocial(social.id)}
+                      aria-pressed={!!selectedSocial[social.id]}
+                    >
+                      <SocialIcon social={social} />
+                      <span>{social.name}</span>
+                      <small>{selectedSocial[social.id] ? "✓ انتخاب شد" : "＋ افزودن"}</small>
+                    </button>
                   ))}
               </div>
 
-              <h3>🌍 شبکه‌های بین‌المللی</h3>
-              <div className="lum-social-form">
-                {socials
-                  .filter((item) => item.category === "international")
-                  .map((social) => (
-                    <label className="lum-field" key={social.id}>
-                      <span>
-                        {social.icon} {social.name}
-                      </span>
-                      <input
-                        value={socialDraft[social.id] ?? ""}
-                        onChange={(e) =>
-                          updateSocial(social.id, e.target.value)
-                        }
-                        placeholder="نام کاربری یا لینک"
-                        dir="ltr"
-                      />
-                    </label>
-                  ))}
-              </div>
-            </div>
+              {socials.filter((social) => selectedSocial[social.id]).length > 0 && (
+                <div className="lum-social-inputs">
+                  <h3>آیدی شبکه‌های انتخاب‌شده</h3>
+                  {socials
+                    .filter((social) => selectedSocial[social.id])
+                    .map((social) => (
+                      <label className="lum-field" key={social.id}>
+                        <span><SocialIcon social={social} /> {social.name}</span>
+                        <input
+                          value={socialDraft[social.id] ?? ""}
+                          onChange={(e) => updateSocial(social.id, e.target.value)}
+                          placeholder={social.id === "whatsapp" ? "شماره با کد کشور یا لینک" : "آیدی یا لینک کامل"}
+                          dir="ltr"
+                        />
+                      </label>
+                    ))}
+                </div>
+              )}
+            </section>
 
-            {error && (
-              <p role="alert" className="lum-error">
-                {error}
-              </p>
-            )}
+            {error && <p role="alert" className="lum-error">{error}</p>}
 
-            <button
-              type="button"
-              className="button full"
-              onClick={saveChanges}
-              disabled={saving}
-            >
+            <button type="button" className="button full" onClick={saveChanges} disabled={saving}>
               {saving ? "در حال ذخیره..." : "💾 ذخیره تغییرات"}
             </button>
           </section>
         ) : (
-          <section className="pbox lum-card">
-            <div className="lum-card-top" />
+          <section
+            className={`pbox lum-card lum-animation-${cardAppearance.animation}`}
+            style={cardStyle}
+          >
+            <div className="lum-card-top" style={{ background: cardAppearance.accentColor }} />
 
             {profile.avatar_url ? (
-              <div className="pavatar">
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name || profile.username}
-                />
+              <div className="pavatar" style={{ borderColor: cardAppearance.accentColor }}>
+                <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
               </div>
             ) : (
-              <div className="pavatar">
-                {(profile.full_name || profile.username)
-                  .charAt(0)
-                  .toUpperCase()}
+              <div className="pavatar" style={{ borderColor: cardAppearance.accentColor }}>
+                {(profile.full_name || profile.username).charAt(0).toUpperCase()}
               </div>
             )}
 
-            <span className="lum-eyebrow">DIGITAL BUSINESS CARD</span>
-
+            <span className="lum-eyebrow" style={{ color: cardAppearance.accentColor }}>DIGITAL BUSINESS CARD</span>
             <h1>{profile.full_name || profile.username}</h1>
-
             <p className="lum-username">@{profile.username}</p>
 
-            {profile.job && <div className="lum-job">{profile.job}</div>}
-
+            {profile.job && <div className="lum-job" style={{ borderColor: cardAppearance.accentColor }}>{profile.job}</div>}
             {profile.bio && <p className="lum-bio">{profile.bio}</p>}
 
             <div className="buttons lum-contact-buttons">
-              {profile.phone && (
-                <a href={`tel:${profile.phone}`}>📞 تماس با من</a>
-              )}
-              {profile.email && (
-                <a href={`mailto:${profile.email}`}>✉️ ارسال ایمیل</a>
-              )}
+              {profile.phone && <a href={`tel:${profile.phone}`} style={{ background: cardAppearance.accentColor }}>📞 تماس با من</a>}
+              {profile.email && <a href={`mailto:${profile.email}`} style={{ background: cardAppearance.accentColor }}>✉️ ارسال ایمیل</a>}
               {profile.website && (
                 <a
-                  href={
-                    /^https?:\/\//i.test(profile.website)
-                      ? profile.website
-                      : `https://${profile.website}`
-                  }
+                  href={/^https?:\/\//i.test(profile.website) ? profile.website : `https://${profile.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  style={{ background: cardAppearance.accentColor }}
                 >
                   🌐 وب‌سایت
                 </a>
               )}
             </div>
 
-            {profile.location && (
-              <p className="lum-location">📍 {profile.location}</p>
-            )}
+            {profile.location && <p className="lum-location">📍 {profile.location}</p>}
 
-            {Object.entries(profile.social_links ?? {}).some(
-              ([, url]) => !!url
-            ) && (
-              <div className="lum-card-socials">
+            {Object.entries(profile.social_links ?? {}).some(([, url]) => !!url) && (
+              <div className="lum-card-socials" style={{ borderColor: `${cardAppearance.accentColor}70` }}>
                 <h2>شبکه‌های اجتماعی</h2>
                 <div className="lum-social-grid">
                   {socials
@@ -819,8 +780,9 @@ export default function ProfilePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="lum-social-link"
+                        style={{ borderColor: `${cardAppearance.accentColor}80`, color: cardAppearance.textColor }}
                       >
-                        <span>{social.icon}</span>
+                        <SocialIcon social={social} />
                         {social.name}
                       </a>
                     ))}
@@ -828,24 +790,12 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {isOwner && (
-              <p className="lum-owner-note">
-                این کارت متعلق به شماست. برای تغییر اطلاعات، از دکمه ویرایش
-                بالای صفحه استفاده کن.
-              </p>
-            )}
-
-            <footer className="lum-powered">
-              Powered by <span>LumoCard</span>
-            </footer>
+            {isOwner && <p className="lum-owner-note">این کارت متعلق به شماست. برای تغییر اطلاعات از دکمه ویرایش استفاده کن.</p>}
+            <footer className="lum-powered">Powered by <span style={{ color: cardAppearance.accentColor }}>LumoCard</span></footer>
           </section>
         )}
 
-        {error && !editing && (
-          <p role="alert" className="lum-error">
-            {error}
-          </p>
-        )}
+        {error && !editing && <p role="alert" className="lum-error">{error}</p>}
       </div>
     </main>
   );
