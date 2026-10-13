@@ -77,3 +77,342 @@ nav{height:82px;display:flex;align-items:center;justify-content:space-between;ga
 .pbox footer{margin-top:30px;font-weight:900;direction:ltr;font-size:20px}
 @media(max-width:800px){nav{height:72px;padding:0 18px}.hero{grid-template-columns:1fr;gap:42px;margin:20px auto 70px;padding:20px}.hero h1{font-size:clamp(58px,13vw,78px)}.hero p{font-size:16px}.card{max-width:410px}.features,.grid{grid-template-columns:1fr;padding-left:20px;padding-right:20px}.features{margin-bottom:60px}.adminHead{align-items:flex-start;gap:15px;flex-direction:column;margin-top:30px;padding:0 20px}.adminHead h1{font-size:34px}.box{padding:30px 23px}.auth:before{inset:10px}.modalBox{padding:22px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* LumoCard profile enhancements */
+
+.lum-profile {
+  padding: 24px 18px 50px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.lum-profile-wrap {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lum-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 auto 28px;
+  flex-wrap: wrap;
+}
+
+.lum-profile-header .logo span {
+  color: #7c3aed;
+}
+
+.lum-header-actions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lum-header-actions .button,
+.lum-header-actions .ghost {
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+.lum-card,
+.lum-editor {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 34px 26px;
+  background: #fff;
+  color: #111;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.lum-card-top {
+  height: 6px;
+  margin: -34px -26px 30px;
+  background: linear-gradient(90deg, #111, #777, #111);
+}
+
+.lum-card .pavatar {
+  width: 105px;
+  height: 105px;
+  margin: 0 auto 20px;
+  border-radius: 28px;
+  background: #111;
+  color: #fff;
+  border: 1px solid var(--line);
+}
+
+.lum-eyebrow {
+  display: block;
+  margin: 10px 0;
+  color: #777;
+  font: 800 11px/1.7 "Vazirmatn", Tahoma, sans-serif;
+  letter-spacing: 1.4px;
+}
+
+.lum-card h1,
+.lum-editor h1 {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  margin: 10px 0 4px;
+}
+
+.lum-username {
+  color: #888;
+  direction: ltr;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.lum-job {
+  display: inline-flex;
+  margin: 12px 0;
+  padding: 7px 16px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--soft);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.lum-bio {
+  margin: 16px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #555;
+  line-height: 2;
+}
+
+.lum-contact-buttons {
+  margin-top: 24px;
+}
+
+.lum-contact-buttons a {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.lum-location {
+  color: #777;
+  font-size: 13px;
+  margin-top: 20px;
+}
+
+.lum-card-socials {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.lum-card-socials h2,
+.lum-social-heading h2 {
+  font-size: 21px;
+  font-weight: 900;
+  margin: 0 0 16px;
+}
+
+.lum-social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.lum-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  transition: background .2s, color .2s, transform .2s;
+}
+
+.lum-social-link:hover {
+  background: #111;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.lum-social-link span {
+  flex-shrink: 0;
+}
+
+.lum-owner-note {
+  margin-top: 25px;
+  color: #888;
+  font-size: 12px;
+  line-height: 2;
+}
+
+.lum-powered {
+  direction: ltr;
+  margin-top: 30px;
+  color: #888;
+  font-size: 12px;
+}
+
+.lum-powered span {
+  color: #111;
+  font-weight: 900;
+}
+
+.lum-editor {
+  max-width: 700px;
+  text-align: right;
+}
+
+.lum-editor-heading {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.lum-editor-heading h1 {
+  font-size: 30px;
+}
+
+.lum-editor-heading p,
+.lum-social-heading p {
+  color: #777;
+  line-height: 2;
+  font-size: 14px;
+}
+
+.lum-field {
+  display: block;
+  min-width: 0;
+  margin: 0 0 17px;
+}
+
+.lum-field > span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.lum-field input,
+.lum-field textarea,
+.lum-field select {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.lum-field textarea {
+  resize: vertical;
+  min-height: 115px;
+}
+
+.lum-field input:focus,
+.lum-field textarea:focus,
+.lum-field select:focus {
+  border-color: #888;
+  box-shadow: 0 0 0 3px #00000008;
+}
+
+.lum-social-section {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid var(--line);
+}
+
+.lum-social-heading {
+  margin-bottom: 25px;
+}
+
+.lum-social-section h3 {
+  margin: 24px 0 14px;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.lum-social-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.lum-social-form .lum-field input {
+  direction: ltr;
+  text-align: left;
+}
+
+.lum-error {
+  color: #c62828;
+  font-size: 13px;
+  line-height: 2;
+  overflow-wrap: anywhere;
+  margin: 15px 0;
+}
+
+.lum-editor .button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .lum-profile {
+    padding: 16px 12px 35px;
+  }
+
+  .lum-profile-header {
+    margin-bottom: 22px;
+  }
+
+  .lum-profile-header .logo {
+    font-size: 24px;
+  }
+
+  .lum-header-actions {
+    width: 100%;
+  }
+
+  .lum-card,
+  .lum-editor {
+    padding: 26px 18px;
+    border-radius: 22px;
+  }
+
+  .lum-card-top {
+    margin: -26px -18px 25px;
+  }
+
+  .lum-card h1 {
+    font-size: 27px;
+  }
+
+  .lum-social-form {
+    grid-template-columns: 1fr;
+  }
+
+  .lum-social-grid {
+    gap: 8px;
+  }
+
+  .lum-social-link {
+    font-size: 12px;
+  }
+}
