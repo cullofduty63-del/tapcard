@@ -1,4 +1,3 @@
-tsx
 import Link from "next/link";
 
 const INSTAGRAM_URL = "https://www.instagram.com/lumocard/";
