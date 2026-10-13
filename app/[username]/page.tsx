@@ -1,5 +1,6 @@
 "use client";
 
+import "./lumocard-premium.css";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
