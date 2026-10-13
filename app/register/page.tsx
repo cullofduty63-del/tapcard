@@ -14,7 +14,6 @@ const [loading, setLoading] = useState(false);
 async function go(event: React.FormEvent<HTMLFormElement>) {
 event.preventDefault();
 
-```
 if (loading) return;
 
 setM("");
@@ -65,14 +64,12 @@ try {
 } finally {
   setLoading(false);
 }
-```
 
 }
 
 return ( <main className="auth"> <div className="box"> <Link className="logo" href="/">
 Lumo<span>Card</span> </Link>
-
-```
+  
     <h1>ساخت حساب</h1>
 
     <form onSubmit={go}>
@@ -113,7 +110,7 @@ Lumo<span>Card</span> </Link>
     {m && <p role="status">{m}</p>}
 
     <Link href="/login">ورود</Link>
-      </div>
-    </main>
-  );
+  </div>
+</main>
+);
 }
