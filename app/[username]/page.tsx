@@ -463,7 +463,7 @@ export default function ProfilePage() {
 
 const cardAppearance = {
   ...defaultAppearance,
-  ...(profile.appearance ?? {}),
+  ...(profile?.appearance ?? {}),
 };
 
   const cardStyle: React.CSSProperties = {
