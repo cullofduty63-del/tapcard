@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // OpenNext handles deployment to Cloudflare.
+poweredByHeader: false,
+compress: true,
 };
 
 export default nextConfig;
