@@ -438,10 +438,14 @@ export default async function PublicCard({
       )
     : [];
 
-  const links = Object.entries(socialLinks)
-    .filter(
-      ([key]) => key !== "phones" && key !== "customLinks"
-    )
+const links = Object.entries(socialLinks)
+  .filter(
+    ([key]) =>
+      key !== "phones" &&
+      key !== "customLinks" &&
+      key !== "email"
+  )
+
     .map(([key, value]) => {
       let href = "";
 
