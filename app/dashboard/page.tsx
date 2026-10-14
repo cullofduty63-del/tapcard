@@ -7,14 +7,22 @@ import { supabase } from "@/lib/supabase";
 
 type Appearance = {
   template?: string;
-  accent?: string;
   background?: string;
+
+  backgroundType?: "solid" | "gradient" | "texture" | "image";
   backgroundColor?: string;
+  backgroundEndColor?: string;
+  backgroundImage?: string;
+  texture?: "marble" | "stars" | "noise";
+
+  accent?: string;
+  accentColor?: string;
   textColor?: string;
   buttonColor?: string;
   iconColor?: string;
+  
+  animation?: "none" | "float" | "glow";
 };
-
 type Profile = {
   id: string;
   username: string;
