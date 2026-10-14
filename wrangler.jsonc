@@ -7,12 +7,15 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  },
-
+{
+  // ...
   "vars": {
     "ADMIN_USER_ID": "46b6757c-9b3c-4b69-aaa0-5865ef9347a2",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://amequpgspnrxhglsdpsm.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_-Zd8hvcp9wj3M0BLjDqdrA_ZQ9u5ERn",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://amequpgspnrxhglsdpsm.supabase.co"
   },
+  // ...
+}
 
   "observability": {
     "logs": {
