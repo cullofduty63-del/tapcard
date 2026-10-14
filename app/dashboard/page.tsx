@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  FormEvent,
+  type FormEvent,
   useEffect,
   useMemo,
   useState,
@@ -10,20 +10,29 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+type PhoneItem = {
+  id: string;
+  title: string;
+  number: string;
+};
+
+type CustomLink = {
+  id: string;
+  title: string;
+  url: string;
+};
+
 type Appearance = {
-  template?: string;
-  background?: string;
-  backgroundType?: "solid" | "gradient" | "texture" | "image";
-  backgroundColor?: string;
-  backgroundEndColor?: string;
-  backgroundImage?: string;
-  texture?: "marble" | "stars" | "noise";
-  accent?: string;
-  accentColor?: string;
-  textColor?: string;
-  buttonColor?: string;
-  iconColor?: string;
-  animation?: "none" | "float" | "glow";
+  template: string;
+  backgroundType: "solid" | "gradient" | "image";
+  background: string;
+  gradientStart: string;
+  gradientEnd: string;
+  backgroundImage: string;
+  accent: string;
+  textColor: string;
+  buttonColor: string;
+  radius: number;
 };
 
 type Profile = {
@@ -37,377 +46,302 @@ type Profile = {
   website?: string;
   location?: string;
   avatar_url?: string;
-  social_links?: Record<string, string>;
-  appearance?: Appearance;
+  social_links?: Record<string, any>;
+  appearance?: Partial<Appearance>;
 };
 
-type AppItem = {
-  id: string;
-  name: string;
-  icon: string;
-  base: string;
+const DEFAULT_APPEARANCE: Appearance = {
+  template: "business",
+  backgroundType: "gradient",
+  background: "#10101A",
+  gradientStart: "#17172B",
+  gradientEnd: "#43216D",
+  backgroundImage: "",
+  accent: "#C084FC",
+  textColor: "#FFFFFF",
+  buttonColor: "#252538",
+  radius: 18,
 };
 
-const templates = [
-  ["personal", "شخصی"],
-  ["business", "کسب‌وکار"],
-  ["designer", "طراح گرافیک"],
-  ["developer", "برنامه‌نویس"],
-  ["creator", "تولید محتوا"],
-  ["shop", "فروشگاه"],
-  ["cafe", "کافه"],
-];
-
-const themes = [
+const APPS = [
   {
-    id: "black",
-    name: "مشکی مینیمال",
-    backgroundColor: "#080808",
-    accent: "#ffffff",
-    textColor: "#ffffff",
-    buttonColor: "#242424",
-    iconColor: "#ffffff",
+    id: "instagram",
+    name: "Instagram",
+    icon: "📸",
+    placeholder: "samiyar.bornaei",
+    base: "https://instagram.com/",
   },
   {
-    id: "gold",
-    name: "مشکی طلایی",
-    backgroundColor: "#100d08",
-    accent: "#d4af37",
-    textColor: "#fff8e7",
-    buttonColor: "#292013",
-    iconColor: "#d4af37",
+    id: "telegram",
+    name: "Telegram",
+    icon: "✈️",
+    placeholder: "username",
+    base: "https://t.me/",
   },
   {
-    id: "white",
-    name: "سفید مینیمال",
-    backgroundColor: "#f5f5f5",
-    accent: "#222222",
-    textColor: "#171717",
-    buttonColor: "#e5e5e5",
-    iconColor: "#222222",
+    id: "whatsapp",
+    name: "WhatsApp",
+    icon: "💬",
+    placeholder: "989121234567",
+    base: "https://wa.me/",
   },
   {
-    id: "purple",
-    name: "بنفش نئونی",
-    backgroundColor: "#10071f",
-    accent: "#a855f7",
-    textColor: "#ffffff",
-    buttonColor: "#28133e",
-    iconColor: "#c084fc",
+    id: "youtube",
+    name: "YouTube",
+    icon: "▶️",
+    placeholder: "لینک کانال یا ویدئو",
+    base: "",
   },
   {
-    id: "ocean",
-    name: "آبی اقیانوسی",
-    backgroundColor: "#071522",
-    accent: "#38bdf8",
-    textColor: "#f0f9ff",
-    buttonColor: "#102b40",
-    iconColor: "#38bdf8",
+    id: "tiktok",
+    name: "TikTok",
+    icon: "🎵",
+    placeholder: "username",
+    base: "https://tiktok.com/@",
   },
   {
-    id: "emerald",
-    name: "سبز زمردی",
-    backgroundColor: "#07140f",
-    accent: "#34d399",
-    textColor: "#ecfdf5",
-    buttonColor: "#123126",
-    iconColor: "#34d399",
+    id: "linkedin",
+    name: "LinkedIn",
+    icon: "💼",
+    placeholder: "لینک پروفایل",
+    base: "",
   },
   {
-    id: "rose",
-    name: "صورتی",
-    backgroundColor: "#1b0b13",
-    accent: "#fb7185",
-    textColor: "#fff1f2",
-    buttonColor: "#351521",
-    iconColor: "#fb7185",
+    id: "github",
+    name: "GitHub",
+    icon: "💻",
+    placeholder: "username",
+    base: "https://github.com/",
   },
   {
-    id: "silver",
-    name: "نقره‌ای",
-    backgroundColor: "#17191e",
-    accent: "#cbd5e1",
-    textColor: "#f8fafc",
-    buttonColor: "#2c3038",
-    iconColor: "#e2e8f0",
+    id: "website",
+    name: "Website",
+    icon: "🌐",
+    placeholder: "https://example.com",
+    base: "",
+  },
+  {
+    id: "email",
+    name: "Email",
+    icon: "✉️",
+    placeholder: "name@example.com",
+    base: "",
+  },
+  {
+    id: "location",
+    name: "Location",
+    icon: "📍",
+    placeholder: "لینک Google Maps",
+    base: "",
   },
 ];
 
-/*
- * فهرست کامل اپلیکیشن‌ها
- * این آرایه را با نسخه اصلی خودت حفظ کن.
- */
-const apps: AppItem[] = [
-  { id: "instagram", name: "Instagram", icon: "📸", base: "https://instagram.com/" },
-  { id: "telegram", name: "Telegram", icon: "✈️", base: "https://t.me/" },
-  { id: "whatsapp", name: "WhatsApp", icon: "💬", base: "https://wa.me/" },
-  { id: "youtube", name: "YouTube", icon: "▶️", base: "https://youtube.com/@" },
-  { id: "tiktok", name: "TikTok", icon: "🎵", base: "https://tiktok.com/@" },
-  { id: "linkedin", name: "LinkedIn", icon: "💼", base: "https://linkedin.com/in/" },
-  { id: "x", name: "X", icon: "𝕏", base: "https://x.com/" },
-  { id: "facebook", name: "Facebook", icon: "📘", base: "https://facebook.com/" },
-  { id: "snapchat", name: "Snapchat", icon: "👻", base: "https://snapchat.com/add/" },
-  { id: "twitch", name: "Twitch", icon: "🎮", base: "https://twitch.tv/" },
-  { id: "discord", name: "Discord", icon: "🎧", base: "" },
-  { id: "reddit", name: "Reddit", icon: "🟠", base: "https://reddit.com/u/" },
-  { id: "pinterest", name: "Pinterest", icon: "📌", base: "https://pinterest.com/" },
-  { id: "threads", name: "Threads", icon: "🧵", base: "https://threads.net/@" },
-  { id: "threadsapp", name: "Threads profile", icon: "🧵", base: "https://threads.net/@" },
-  { id: "github", name: "GitHub", icon: "💻", base: "https://github.com/" },
-  { id: "gitlab", name: "GitLab", icon: "🦊", base: "https://gitlab.com/" },
-  { id: "behance", name: "Behance", icon: "🎨", base: "https://behance.net/" },
-  { id: "dribbble", name: "Dribbble", icon: "🏀", base: "https://dribbble.com/" },
-  { id: "medium", name: "Medium", icon: "📝", base: "https://medium.com/@" },
-  { id: "wordpress", name: "WordPress", icon: "🌐", base: "https://wordpress.com/" },
-  { id: "tumblr", name: "Tumblr", icon: "📓", base: "https://tumblr.com/" },
-  { id: "vimeo", name: "Vimeo", icon: "🎬", base: "https://vimeo.com/" },
-  { id: "dailymotion", name: "Dailymotion", icon: "🎞️", base: "https://dailymotion.com/" },
-  { id: "spotify", name: "Spotify", icon: "🎧", base: "https://open.spotify.com/user/" },
-  { id: "soundcloud", name: "SoundCloud", icon: "🎼", base: "https://soundcloud.com/" },
-  { id: "bandcamp", name: "Bandcamp", icon: "🎸", base: "https://bandcamp.com/" },
-  { id: "applemusic", name: "Apple Music", icon: "🎵", base: "" },
-  { id: "deezer", name: "Deezer", icon: "🎶", base: "https://deezer.com/" },
-  { id: "mixcloud", name: "Mixcloud", icon: "🎚️", base: "https://mixcloud.com/" },
-  { id: "telegramchannel", name: "Telegram Channel", icon: "📣", base: "https://t.me/" },
-  { id: "whatsappchannel", name: "WhatsApp Channel", icon: "📢", base: "" },
-  { id: "kick", name: "Kick", icon: "🟢", base: "https://kick.com/" },
-  { id: "rumble", name: "Rumble", icon: "🎥", base: "https://rumble.com/" },
-  { id: "odysee", name: "Odysee", icon: "📺", base: "https://odysee.com/@" },
-  { id: "patreon", name: "Patreon", icon: "❤️", base: "https://patreon.com/" },
-  { id: "ko-fi", name: "Ko-fi", icon: "☕", base: "https://ko-fi.com/" },
-  { id: "buymeacoffee", name: "Buy Me a Coffee", icon: "☕", base: "https://buymeacoffee.com/" },
-  { id: "substack", name: "Substack", icon: "📰", base: "https://substack.com/@" },
-  { id: "producthunt", name: "Product Hunt", icon: "🚀", base: "https://producthunt.com/@/" },
-  { id: "stackoverflow", name: "Stack Overflow", icon: "🧩", base: "https://stackoverflow.com/users/" },
-  { id: "codepen", name: "CodePen", icon: "🖊️", base: "https://codepen.io/" },
-  { id: "replit", name: "Replit", icon: "🧑‍💻", base: "https://replit.com/@" },
-  { id: "huggingface", name: "Hugging Face", icon: "🤗", base: "https://huggingface.co/" },
-  { id: "kaggle", name: "Kaggle", icon: "📊", base: "https://kaggle.com/" },
-  { id: "devto", name: "DEV Community", icon: "👨‍💻", base: "https://dev.to/" },
-  { id: "hackernoon", name: "HackerNoon", icon: "🟩", base: "https://hackernoon.com/u/" },
-  { id: "goodreads", name: "Goodreads", icon: "📚", base: "https://goodreads.com/" },
-  { id: "letterboxd", name: "Letterboxd", icon: "🎬", base: "https://letterboxd.com/" },
-  { id: "imdb", name: "IMDb", icon: "🎞️", base: "https://imdb.com/name/" },
-  { id: "tiktokshop", name: "TikTok Shop", icon: "🛍️", base: "" },
-  { id: "etsy", name: "Etsy", icon: "🧶", base: "https://etsy.com/shop/" },
-  { id: "amazon", name: "Amazon", icon: "📦", base: "" },
-  { id: "ebay", name: "eBay", icon: "🛒", base: "" },
-  { id: "shopify", name: "Shopify Store", icon: "🛍️", base: "" },
-  { id: "opensea", name: "OpenSea", icon: "🌊", base: "https://opensea.io/" },
-  { id: "behanceportfolio", name: "Portfolio", icon: "🗂️", base: "" },
-  { id: "flickr", name: "Flickr", icon: "📷", base: "https://flickr.com/people/" },
-  { id: "500px", name: "500px", icon: "📸", base: "https://500px.com/p/" },
-  { id: "unsplash", name: "Unsplash", icon: "🌄", base: "https://unsplash.com/@" },
-  { id: "pexels", name: "Pexels", icon: "📷", base: "https://pexels.com/@" },
-  { id: "deviantart", name: "DeviantArt", icon: "🖌️", base: "https://deviantart.com/" },
-  { id: "artstation", name: "ArtStation", icon: "🖼️", base: "https://artstation.com/" },
-  { id: "figma", name: "Figma", icon: "🎨", base: "https://figma.com/@/" },
-  { id: "canva", name: "Canva", icon: "🪄", base: "https://canva.com/" },
-  { id: "telegrambot", name: "Telegram Bot", icon: "🤖", base: "https://t.me/" },
-  { id: "rubika", name: "روبیکا", icon: "🇮🇷", base: "https://rubika.ir/" },
-  { id: "eitaa", name: "ایتا", icon: "🇮🇷", base: "https://eitaa.com/" },
-  { id: "bale", name: "بله", icon: "🇮🇷", base: "https://ble.ir/" },
-  { id: "soroush", name: "سروش پلاس", icon: "🇮🇷", base: "https://splus.ir/" },
-  { id: "igap", name: "آی‌گپ", icon: "🇮🇷", base: "https://igap.net/" },
-  { id: "gap", name: "گپ", icon: "🇮🇷", base: "https://gap.im/" },
-  { id: "virasty", name: "ویراستی", icon: "🇮🇷", base: "https://virasty.com/" },
-  { id: "bisphone", name: "بیسفون", icon: "🇮🇷", base: "" },
-  { id: "shad", name: "شاد", icon: "🇮🇷", base: "https://shad.ir/" },
-  { id: "taaghche", name: "طاقچه", icon: "📚", base: "https://taaghche.com/" },
-  { id: "fidibo", name: "فیدیبو", icon: "📖", base: "https://fidibo.com/" },
-  { id: "ketabrah", name: "کتابراه", icon: "📚", base: "https://ketabrah.ir/" },
-  { id: "aparat", name: "آپارات", icon: "🇮🇷", base: "https://aparat.com/" },
-  { id: "namasha", name: "نماشا", icon: "🇮🇷", base: "https://namasha.com/" },
-  { id: "tamasha", name: "تماشا", icon: "🇮🇷", base: "" },
-  { id: "filimo", name: "فیلیمو", icon: "🎬", base: "https://filimo.com/" },
-  { id: "namava", name: "نماوا", icon: "🎬", base: "https://namava.ir/" },
-  { id: "filmnet", name: "فیلم‌نت", icon: "🎥", base: "https://filmnet.ir/" },
-  { id: "digikala", name: "دیجی‌کالا", icon: "🛍️", base: "https://digikala.com/" },
-  { id: "torob", name: "ترب", icon: "🛒", base: "https://torob.com/" },
-  { id: "basalam", name: "باسلام", icon: "🛍️", base: "https://basalam.com/" },
-  { id: "snapp", name: "اسنپ", icon: "🚕", base: "https://snapp.ir/" },
-  { id: "tapsi", name: "تپسی", icon: "🚖", base: "https://tapsi.ir/" },
-  { id: "divar", name: "دیوار", icon: "🧱", base: "https://divar.ir/" },
-  { id: "sheypoor", name: "شیپور", icon: "📣", base: "https://sheypoor.com/" },
-  { id: "cafebazaar", name: "کافه‌بازار", icon: "🛒", base: "https://cafebazaar.ir/" },
-  { id: "myket", name: "مایکت", icon: "📱", base: "https://myket.ir/" },
-  { id: "zarinpal", name: "زرین‌پال", icon: "💳", base: "https://zarinpal.com/" },
-  { id: "idpay", name: "آیدی‌پی", icon: "💳", base: "https://idpay.ir/" },
-  { id: "nextpay", name: "نکست‌پی", icon: "💳", base: "https://nextpay.org/" },
-  { id: "zibal", name: "زیبال", icon: "💳", base: "https://zibal.ir/" },
-  { id: "neshan", name: "نشان", icon: "🗺️", base: "https://neshan.org/" },
-  { id: "balad", name: "بلد", icon: "🧭", base: "https://balad.ir/" },
-  { id: "cafebazaarapp", name: "کافه‌بازار توسعه‌دهنده", icon: "📱", base: "" },
-  { id: "virgool", name: "ویرگول", icon: "✍️", base: "https://virgool.io/" },
-  { id: "virgoolprofile", name: "ویرگول نویسنده", icon: "📝", base: "https://virgool.io/@" },
-  { id: "limo", name: "لینک دلخواه", icon: "🔗", base: "" },
-  { id: "website2", name: "وب‌سایت دوم", icon: "🌐", base: "" },
-  { id: "email", name: "ایمیل", icon: "✉️", base: "mailto:" },
-  { id: "phone", name: "تماس تلفنی", icon: "☎️", base: "tel:" },
-  { id: "sms", name: "پیامک", icon: "💬", base: "sms:" },
-  { id: "maps", name: "Google Maps", icon: "📍", base: "" },
-  { id: "calendly", name: "Calendly", icon: "📅", base: "https://calendly.com/" },
-  { id: "linktree", name: "Linktree", icon: "🌳", base: "https://linktr.ee/" },
-  { id: "beacons", name: "Beacons", icon: "🔗", base: "https://beacons.ai/" },
-  { id: "aboutme", name: "About.me", icon: "👤", base: "https://about.me/" },
-  { id: "threads2", name: "Threads Creator", icon: "🧵", base: "" },
-  { id: "mastodon", name: "Mastodon", icon: "🐘", base: "" },
-  { id: "bluesky", name: "Bluesky", icon: "🦋", base: "https://bsky.app/profile/" },
-  { id: "truthsocial", name: "Truth Social", icon: "🗣️", base: "https://truthsocial.com/@" },
-  { id: "quora", name: "Quora", icon: "❓", base: "https://quora.com/profile/" },
-  { id: "researchgate", name: "ResearchGate", icon: "🔬", base: "https://researchgate.net/profile/" },
-  { id: "academia", name: "Academia.edu", icon: "🎓", base: "https://independent.academia.edu/" },
-  { id: "orcid", name: "ORCID", icon: "🧑‍🔬", base: "https://orcid.org/" },
-  { id: "googleplay", name: "Google Play", icon: "▶️", base: "" },
-  { id: "appstore", name: "App Store", icon: "🍎", base: "" },
-  { id: "telegrammini", name: "Telegram Mini App", icon: "📲", base: "" },
-  { id: "line", name: "LINE", icon: "💚", base: "https://line.me/" },
-  { id: "kakao", name: "KakaoTalk", icon: "💛", base: "" },
-  { id: "wechat", name: "WeChat", icon: "💬", base: "" },
-  { id: "viber", name: "Viber", icon: "📞", base: "" },
-  { id: "skype", name: "Skype", icon: "📞", base: "https://join.skype.com/" },
-  { id: "signal", name: "Signal", icon: "🔐", base: "" },
-  { id: "meet", name: "Google Meet", icon: "📹", base: "" },
-  { id: "zoom", name: "Zoom", icon: "📹", base: "" },
-  { id: "teams", name: "Microsoft Teams", icon: "👥", base: "" },
-  { id: "slack", name: "Slack", icon: "💬", base: "" },
-  { id: "notion", name: "Notion", icon: "📓", base: "https://notion.site/" },
-  { id: "trello", name: "Trello", icon: "📋", base: "https://trello.com/" },
-  { id: "figjam", name: "FigJam", icon: "🖍️", base: "" },
-  { id: "google", name: "Google", icon: "🔎", base: "" },
-  { id: "mediumpub", name: "Medium Publication", icon: "📰", base: "" },
-  { id: "kickstarter", name: "Kickstarter", icon: "🚀", base: "https://kickstarter.com/profile/" },
-  { id: "indiegogo", name: "Indiegogo", icon: "💡", base: "https://indiegogo.com/" },
-  { id: "gofundme", name: "GoFundMe", icon: "❤️", base: "https://gofundme.com/" },
-  { id: "paypal", name: "PayPal", icon: "💳", base: "" },
-  { id: "cashapp", name: "Cash App", icon: "💵", base: "" },
-  { id: "venmo", name: "Venmo", icon: "💸", base: "" },
-  { id: "wise", name: "Wise", icon: "💱", base: "" },
-  { id: "revolut", name: "Revolut", icon: "💳", base: "" },
-  { id: "telegramgroup", name: "Telegram Group", icon: "👥", base: "https://t.me/" },
-  { id: "instagrambroadcast", name: "Instagram Channel", icon: "📣", base: "" },
-  { id: "facebookpage", name: "Facebook Page", icon: "📘", base: "https://facebook.com/" },
-  { id: "linkedincompany", name: "LinkedIn Company", icon: "🏢", base: "https://linkedin.com/company/" },
-  { id: "youtubechannel", name: "YouTube Channel", icon: "📺", base: "https://youtube.com/@" },
-  { id: "spotifyartist", name: "Spotify Artist", icon: "🎤", base: "" },
-  { id: "soundcloudartist", name: "SoundCloud Artist", icon: "🎧", base: "https://soundcloud.com/" },
-  { id: "discordserver", name: "Discord Server", icon: "🎮", base: "" },
-  { id: "whatsappbusiness", name: "WhatsApp Business", icon: "💼", base: "https://wa.me/" },
+const TEMPLATES = [
+  { id: "personal", name: "شخصی", icon: "👤" },
+  { id: "business", name: "کاری", icon: "💼" },
+  { id: "creator", name: "تولیدکننده محتوا", icon: "🎬" },
+  { id: "developer", name: "برنامه‌نویس", icon: "💻" },
 ];
 
-const knownFields = [
-  "instagram",
-  "telegram",
-  "whatsapp",
-  "youtube",
-  "website",
+const PRESETS = [
+  {
+    name: "Midnight",
+    background: "#10101A",
+    start: "#17172B",
+    end: "#43216D",
+    accent: "#C084FC",
+  },
+  {
+    name: "Ocean",
+    background: "#071A2B",
+    start: "#071A2B",
+    end: "#075985",
+    accent: "#38BDF8",
+  },
+  {
+    name: "Emerald",
+    background: "#071D17",
+    start: "#071D17",
+    end: "#065F46",
+    accent: "#34D399",
+  },
+  {
+    name: "Rose",
+    background: "#27101C",
+    start: "#27101C",
+    end: "#881337",
+    accent: "#FDA4AF",
+  },
+  {
+    name: "Minimal",
+    background: "#FFFFFF",
+    start: "#FFFFFF",
+    end: "#E5E7EB",
+    accent: "#111827",
+  },
+  {
+    name: "Gold",
+    background: "#17130B",
+    start: "#17130B",
+    end: "#574018",
+    accent: "#FBBF24",
+  },
 ];
 
-function validColor(value: string | undefined, fallback: string): string {
-  return value && /^#[0-9a-fA-F]{6}$/.test(value)
+function createId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function validColor(value: unknown, fallback: string) {
+  return typeof value === "string" &&
+    /^#[0-9a-fA-F]{6}$/.test(value)
     ? value
     : fallback;
 }
 
-function makeAppUrl(app: AppItem, input: string): string {
-  const value = input.trim();
-
-  if (!value) return "";
-
-  if (/^(https?:\/\/|mailto:|tel:|sms:)/i.test(value)) {
-    return value;
-  }
-
-  if (
-    !app.base ||
-    app.base.startsWith("mailto:") ||
-    app.base.startsWith("tel:") ||
-    app.base.startsWith("sms:")
-  ) {
-    return "";
-  }
-
-  return (
-    app.base +
-    value.replace(/^@/, "").replace(/^\/+/, "")
-  );
-}
-
-function normalizeLink(value: string): string {
+function normalizeUrl(value: string) {
   const trimmed = value.trim();
 
   if (!trimmed) return "";
 
-  if (/^(https?:\/\/|mailto:|tel:|sms:)/i.test(trimmed)) {
+  if (/^https?:\/\//i.test(trimmed)) {
     return trimmed;
   }
 
   return `https://${trimmed}`;
 }
 
-function getInitialAppearance(data: any): Appearance {
-  const saved = data?.appearance || {};
+function getAppearance(
+  value?: Partial<Appearance> | null
+): Appearance {
+  const saved = value || {};
 
   return {
-    template: saved.template || "personal",
-    background: saved.background || "purple",
-    backgroundType: saved.backgroundType || "solid",
-    backgroundColor: validColor(
-      saved.backgroundColor,
-      "#10071f",
+    ...DEFAULT_APPEARANCE,
+    ...saved,
+    background: validColor(
+      saved.background,
+      DEFAULT_APPEARANCE.background
     ),
-    backgroundEndColor: validColor(
-      saved.backgroundEndColor,
-      "#28133e",
+    gradientStart: validColor(
+      saved.gradientStart,
+      DEFAULT_APPEARANCE.gradientStart
     ),
-    backgroundImage: saved.backgroundImage || "",
-    texture: saved.texture || "stars",
-    accent: validColor(saved.accent, "#a855f7"),
-    textColor: validColor(saved.textColor, "#ffffff"),
-    buttonColor: validColor(saved.buttonColor, "#28133e"),
-    iconColor: validColor(saved.iconColor, "#c084fc"),
-    animation: saved.animation || "none",
+    gradientEnd: validColor(
+      saved.gradientEnd,
+      DEFAULT_APPEARANCE.gradientEnd
+    ),
+    accent: validColor(
+      saved.accent,
+      DEFAULT_APPEARANCE.accent
+    ),
+    textColor: validColor(
+      saved.textColor,
+      DEFAULT_APPEARANCE.textColor
+    ),
+    buttonColor: validColor(
+      saved.buttonColor,
+      DEFAULT_APPEARANCE.buttonColor
+    ),
+    radius:
+      typeof saved.radius === "number"
+        ? Math.min(32, Math.max(0, saved.radius))
+        : DEFAULT_APPEARANCE.radius,
+    backgroundType:
+      saved.backgroundType === "solid" ||
+      saved.backgroundType === "image"
+        ? saved.backgroundType
+        : "gradient",
   };
 }
+
+function getCardBackground(appearance: Appearance) {
+  if (
+    appearance.backgroundType === "image" &&
+    appearance.backgroundImage.trim()
+  ) {
+    const imageUrl = normalizeUrl(
+      appearance.backgroundImage
+    );
+
+    try {
+      const parsed = new URL(imageUrl);
+
+      if (
+        parsed.protocol === "http:" ||
+        parsed.protocol === "https:"
+      ) {
+        return `linear-gradient(#0005,#0008),url("${imageUrl}") center/cover`;
+      }
+    } catch {
+      // اگر آدرس معتبر نباشد، پس‌زمینه جایگزین نمایش داده می‌شود.
+    }
+  }
+
+  if (appearance.backgroundType === "solid") {
+    return appearance.background;
+  }
+
+  return `linear-gradient(135deg, ${appearance.gradientStart}, ${appearance.gradientEnd})`;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [busy, setBusy] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [selectedApp, setSelectedApp] = useState("instagram");
-  const [appInput, setAppInput] = useState("");
-  const [appLinks, setAppLinks] = useState<Record<string, string>>({});
-  const [appearance, setAppearance] = useState<Appearance>({
-    template: "personal",
-    background: "purple",
-    backgroundType: "solid",
-    backgroundColor: "#10071f",
-    backgroundEndColor: "#28133e",
-    accent: "#a855f7",
-    textColor: "#ffffff",
-    buttonColor: "#28133e",
-    iconColor: "#c084fc",
-    texture: "stars",
-    animation: "none",
+
+  const [appearance, setAppearance] =
+    useState<Appearance>(DEFAULT_APPEARANCE);
+
+  const [phones, setPhones] = useState<PhoneItem[]>([]);
+  const [customLinks, setCustomLinks] =
+    useState<CustomLink[]>([]);
+
+  const [phoneTitle, setPhoneTitle] = useState("شماره اصلی");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
+  const [customTitle, setCustomTitle] = useState("");
+  const [customUrl, setCustomUrl] = useState("");
+
+  const [appValues, setAppValues] =
+    useState<Record<string, string>>({});
+
+  const [activeSection, setActiveSection] =
+    useState("profile");
+
+  const [appSearch, setAppSearch] = useState("");
+
+  const [profileForm, setProfileForm] = useState({
+    username: "",
+    full_name: "",
+    job: "",
+    bio: "",
+    email: "",
+    website: "",
+    location: "",
   });
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfile() {
+    async function loadDashboard() {
+      setLoading(true);
+      setError("");
+
       try {
         const {
           data: { user },
           error: authError,
         } = await supabase.auth.getUser();
 
-        if (cancelled) return;
+        if (authError) throw authError;
 
-        if (authError || !user) {
+        if (!user) {
           router.replace("/login");
           return;
         }
@@ -418,44 +352,80 @@ export default function DashboardPage() {
           .eq("id", user.id)
           .maybeSingle();
 
-        if (cancelled) return;
-
-        if (profileError) {
-          setError(
-            "خواندن پروفایل ناموفق بود؛ دسترسی جدول profiles را بررسی کن.",
-          );
-          setBusy(false);
-          return;
-        }
+        if (profileError) throw profileError;
 
         if (!data) {
-          setError("پروفایل این حساب پیدا نشد.");
-          setBusy(false);
-          return;
+          throw new Error(
+            "پروفایل پیدا نشد. ابتدا پروفایل خودت را ایجاد کن."
+          );
         }
 
-        const loadedAppearance = getInitialAppearance(data);
+        if (cancelled) return;
 
-        setProfile({
-          ...data,
-          social_links: data.social_links || {},
-          appearance: loadedAppearance,
+        const currentProfile = data as Profile;
+        const links = currentProfile.social_links || {};
+
+        setProfile(currentProfile);
+
+        setProfileForm({
+          username: currentProfile.username || "",
+          full_name: currentProfile.full_name || "",
+          job: currentProfile.job || "",
+          bio: currentProfile.bio || "",
+          email: currentProfile.email || "",
+          website: currentProfile.website || "",
+          location: currentProfile.location || "",
         });
 
-        setAppearance(loadedAppearance);
-        setAppLinks(data.social_links || {});
-        setBusy(false);
-      } catch (err) {
-        console.error("Profile loading error:", err);
+        setAppearance(
+          getAppearance(currentProfile.appearance)
+        );
 
-        if (!cancelled) {
-          setError("بارگذاری پروفایل با مشکل مواجه شد.");
-          setBusy(false);
+        const savedPhones = Array.isArray(links.phones)
+          ? links.phones
+          : [];
+
+        setPhones(
+          savedPhones.map((item: any) => ({
+            id: String(item.id || createId()),
+            title: String(item.title || "شماره تلفن"),
+            number: String(item.number || ""),
+          }))
+        );
+
+        const savedCustomLinks = Array.isArray(
+          links.customLinks
+        )
+          ? links.customLinks
+          : [];
+
+        setCustomLinks(
+          savedCustomLinks.map((item: any) => ({
+            id: String(item.id || createId()),
+            title: String(item.title || "لینک"),
+            url: String(item.url || ""),
+          }))
+        );
+
+        const values: Record<string, string> = {};
+
+        for (const app of APPS) {
+          values[app.id] = String(links[app.id] || "");
         }
+
+        setAppValues(values);
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(
+            e?.message || "بارگذاری داشبورد با خطا مواجه شد."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
-    loadProfile();
+    loadDashboard();
 
     return () => {
       cancelled = true;
@@ -463,969 +433,2142 @@ export default function DashboardPage() {
   }, [router]);
 
   const filteredApps = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const query = appSearch.trim().toLowerCase();
 
-    if (!q) return apps;
+    return APPS.filter((app) => {
+      const matchesSearch =
+        !query ||
+        app.name.toLowerCase().includes(query) ||
+        app.id.toLowerCase().includes(query);
 
-    return apps.filter((app) =>
-      `${app.name} ${app.id}`.toLowerCase().includes(q),
-    );
-  }, [search]);
-
-  function applyTheme(themeId: string) {
-    const theme = themes.find((item) => item.id === themeId);
-
-    if (!theme) return;
-
-    setAppearance((current) => ({
-      ...current,
-      template: current.template || "personal",
-      background: theme.id,
-      backgroundType: "solid",
-      backgroundColor: theme.backgroundColor,
-      accent: theme.accent,
-      textColor: theme.textColor,
-      buttonColor: theme.buttonColor,
-      iconColor: theme.iconColor,
-    }));
-  }
-
-  function updateAppearance(patch: Partial<Appearance>) {
-    setAppearance((current) => ({
-      ...current,
-      ...patch,
-    }));
-  }
-
-  function addApp() {
-    const app = apps.find((item) => item.id === selectedApp);
-
-    if (!app) {
-      setError("ابتدا یک اپلیکیشن انتخاب کن.");
-      return;
-    }
-
-    const url = makeAppUrl(app, appInput);
-
-    if (!url) {
-      setError(
-        "برای این اپ لینک کامل https:// وارد کن؛ یا یوزرنیم معتبر بنویس.",
+      const hasValue = Boolean(
+        appValues[app.id]?.trim()
       );
+
+      return matchesSearch || hasValue;
+    });
+  }, [appSearch, appValues]);
+
+  const cardBackground = useMemo(
+    () => getCardBackground(appearance),
+    [appearance]
+  );
+
+  function updateProfileField(
+    field: keyof typeof profileForm,
+    value: string
+  ) {
+    setProfileForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  }
+
+  function updateAppearance(
+    field: keyof Appearance,
+    value: string | number
+  ) {
+    setAppearance((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  }
+
+  function addPhone() {
+    setError("");
+    setMessage("");
+
+    if (!phoneNumber.trim()) {
+      setError("شماره تلفن را وارد کن.");
       return;
     }
 
+    setPhones((previous) => [
+      ...previous,
+      {
+        id: createId(),
+        title: phoneTitle.trim() || "شماره تلفن",
+        number: phoneNumber.trim(),
+      },
+    ]);
+
+    setPhoneTitle("شماره دیگر");
+    setPhoneNumber("");
+  }
+
+  function updatePhone(
+    id: string,
+    field: "title" | "number",
+    value: string
+  ) {
+    setPhones((previous) =>
+      previous.map((phone) =>
+        phone.id === id
+          ? { ...phone, [field]: value }
+          : phone
+      )
+    );
+  }
+
+  function deletePhone(id: string) {
+    setPhones((previous) =>
+      previous.filter((phone) => phone.id !== id)
+    );
+  }
+
+  function addCustomLink() {
     setError("");
+    setMessage("");
 
-    setAppLinks((current) => ({
-      ...current,
-      [app.id]: url,
-    }));
+    if (!customTitle.trim() || !customUrl.trim()) {
+      setError("عنوان و آدرس لینک را وارد کن.");
+      return;
+    }
 
-    setAppInput("");
-    setMessage(`${app.name} اضافه شد. برای ثبت نهایی، ذخیره تغییرات را بزن.`);
+    setCustomLinks((previous) => [
+      ...previous,
+      {
+        id: createId(),
+        title: customTitle.trim(),
+        url: normalizeUrl(customUrl),
+      },
+    ]);
+
+    setCustomTitle("");
+    setCustomUrl("");
   }
 
-  function removeApp(id: string) {
-    setAppLinks((current) => {
-      const next = { ...current };
-      delete next[id];
-      return next;
-    });
-
-    setMessage("لینک از فهرست حذف شد؛ برای ثبت نهایی ذخیره تغییرات را بزن.");
+  function deleteCustomLink(id: string) {
+    setCustomLinks((previous) =>
+      previous.filter((item) => item.id !== id)
+    );
   }
 
-  async function save(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function movePhone(index: number, direction: -1 | 1) {
+    const next = [...phones];
+    const target = index + direction;
 
-    if (!profile || saving) return;
+    if (target < 0 || target >= next.length) return;
+
+    [next[index], next[target]] = [
+      next[target],
+      next[index],
+    ];
+
+    setPhones(next);
+  }
+
+  function moveCustomLink(
+    index: number,
+    direction: -1 | 1
+  ) {
+    const next = [...customLinks];
+    const target = index + direction;
+
+    if (target < 0 || target >= next.length) return;
+
+    [next[index], next[target]] = [
+      next[target],
+      next[index],
+    ];
+
+    setCustomLinks(next);
+  }
+
+  async function saveDashboard(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (!profile) return;
 
     setSaving(true);
     setError("");
     setMessage("");
 
     try {
-      const form = new FormData(e.currentTarget);
-
-      const username = String(form.get("username") || "")
+      const username = profileForm.username
         .trim()
-        .toLowerCase();
+        .replace(/^@/, "");
 
-      if (!/^[a-z0-9_-]{3,24}$/.test(username)) {
-        setError(
-          "آدرس باید ۳ تا ۲۴ کاراکتر انگلیسی، عدد، _ یا - باشد.",
+      if (!username) {
+        throw new Error("نام کاربری نمی‌تواند خالی باشد.");
+      }
+
+      if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
+        throw new Error(
+          "نام کاربری فقط می‌تواند شامل حروف انگلیسی، عدد، نقطه، خط تیره و زیرخط باشد."
         );
-        return;
       }
 
-      const fullName = String(form.get("full_name") || "").trim();
-
-      if (!fullName) {
-        setError("لطفاً نام خودت را وارد کن.");
-        return;
-      }
-
-      const socialLinks: Record<string, string> = {
-        ...appLinks,
-      };
-
-      for (const key of knownFields) {
-        const value = String(form.get(key) || "").trim();
-
-        if (value) {
-          socialLinks[key] = normalizeLink(value);
-        } else if (key !== "website") {
-          delete socialLinks[key];
-        }
-      }
-
-      const socialWebsite = String(
-        form.get("social_website") || "",
-      ).trim();
-
-      if (socialWebsite) {
-        socialLinks.website = normalizeLink(socialWebsite);
-      } else if (!String(form.get("website") || "").trim()) {
-        delete socialLinks.website;
-      }
-
-      const updatedAppearance: Appearance = {
-        ...appearance,
-        template: appearance.template || "personal",
-        background: appearance.background || "purple",
-        backgroundType: appearance.backgroundType || "solid",
-        backgroundColor: validColor(
-          appearance.backgroundColor,
-          "#10071f",
-        ),
-        backgroundEndColor: validColor(
-          appearance.backgroundEndColor,
-          "#28133e",
-        ),
-        accent: validColor(appearance.accent, "#a855f7"),
-        textColor: validColor(appearance.textColor, "#ffffff"),
-        buttonColor: validColor(
-          appearance.buttonColor,
-          "#28133e",
-        ),
-        iconColor: validColor(appearance.iconColor, "#c084fc"),
-        animation: appearance.animation || "none",
-      };
-
-      const updated = {
-        id: profile.id,
-        username,
-        full_name: fullName,
-        job: String(form.get("job") || "").trim(),
-        bio: String(form.get("bio") || "").trim(),
-        phone: String(form.get("phone") || "").trim(),
-        website: normalizeLink(
-          String(form.get("website") || ""),
-        ),
-        location: String(form.get("location") || "").trim(),
-        social_links: socialLinks,
-        appearance: updatedAppearance,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (username !== profile.username) {
-        const {
-          data: existing,
-          error: checkError,
-        } = await supabase
+      const { data: existing, error: usernameError } =
+        await supabase
           .from("profiles")
           .select("id")
           .eq("username", username)
           .neq("id", profile.id)
           .maybeSingle();
 
-        if (checkError) {
-          console.error("Username check error:", checkError);
-          setError("بررسی آدرس ناموفق بود؛ دسترسی جدول را بررسی کن.");
-          return;
-        }
+      if (usernameError) throw usernameError;
 
-        if (existing) {
-          setError("این آدرس قبلاً گرفته شده است.");
-          return;
-        }
-      }
-
-      const { error: saveError } = await supabase
-        .from("profiles")
-        .upsert(updated, { onConflict: "id" });
-
-      if (saveError) {
-        console.error("Profile save error:", saveError);
-        setError(
-          "ذخیره ناموفق بود؛ ستون‌های جدول profiles و سیاست‌های RLS را بررسی کن.",
+      if (existing) {
+        throw new Error(
+          "این نام کاربری قبلاً توسط شخص دیگری انتخاب شده است."
         );
-        return;
       }
 
-      setProfile((current) =>
-        current
-          ? {
-              ...current,
-              ...updated,
-              email: current.email,
-              social_links: socialLinks,
-              appearance: updatedAppearance,
-            }
-          : current,
-      );
+      const socialLinks: Record<string, any> = {
+        ...(profile.social_links || {}),
+      };
 
-      setAppLinks(socialLinks);
-      setAppearance(updatedAppearance);
-      setMessage("تغییرات با موفقیت ذخیره شد. 💜");
-    } catch (err) {
-      console.error("Saving profile error:", err);
-      setError("هنگام ذخیره اطلاعات خطای غیرمنتظره‌ای رخ داد.");
+      for (const app of APPS) {
+        const value = appValues[app.id]?.trim() || "";
+
+        if (value) {
+          socialLinks[app.id] = value;
+        } else {
+          delete socialLinks[app.id];
+        }
+      }
+
+      socialLinks.phones = phones;
+      socialLinks.customLinks = customLinks;
+
+      const updatedProfile = {
+        id: profile.id,
+        username,
+        full_name: profileForm.full_name.trim(),
+        job: profileForm.job.trim(),
+        bio: profileForm.bio.trim(),
+        email: profileForm.email.trim(),
+        website: profileForm.website.trim(),
+        location: profileForm.location.trim(),
+        phone: phones[0]?.number || "",
+        social_links: socialLinks,
+        appearance,
+      };
+
+      const { data, error: saveError } = await supabase
+        .from("profiles")
+        .upsert(updatedProfile, {
+          onConflict: "id",
+        })
+        .select("*")
+        .single();
+
+      if (saveError) throw saveError;
+
+      setProfile(data as Profile);
+
+      setMessage("تغییرات با موفقیت ذخیره شد! 💜");
+    } catch (e: any) {
+      setError(
+        e?.message || "ذخیره تغییرات با خطا مواجه شد."
+      );
     } finally {
       setSaving(false);
     }
   }
-
-  async function logout() {
-    await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
-  }
-
-  if (busy) {
+    if (loading) {
     return (
-      <main className="page-shell">
-        <p className="loading">در حال بارگذاری کارت...</p>
+      <main className="lc-loading" dir="rtl">
+        <div className="lc-spinner" />
+        <p>داریم داشبوردت رو آماده می‌کنیم...</p>
+
+        <style jsx>{`
+          .lc-loading {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0b0b12;
+            color: white;
+            font-family: sans-serif;
+          }
+
+          .lc-spinner {
+            width: 38px;
+            height: 38px;
+            border: 3px solid #343044;
+            border-top-color: #c084fc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </main>
     );
   }
-
-  if (!profile) {
-    return (
-      <main className="page-shell">
-        <section className="panel narrow">
-          <div className="notice">
-            {error || "پروفایل بارگذاری نشد."}
-          </div>
-          <Link className="button" href="/login">
-            بازگشت به ورود
-          </Link>
-        </section>
-      </main>
-    );
-  }
-
-  const publicUrl = `https://lumocard.ir/${profile.username}`;
-
-  const previewBackground =
-    appearance.backgroundType === "gradient"
-      ? `linear-gradient(135deg, ${validColor(
-          appearance.backgroundColor,
-          "#10071f",
-        )}, ${validColor(
-          appearance.backgroundEndColor,
-          "#28133e",
-        )})`
-      : appearance.backgroundType === "image" &&
-          appearance.backgroundImage
-        ? `linear-gradient(#0004, #0004), url("${appearance.backgroundImage}") center/cover`
-        : validColor(appearance.backgroundColor, "#10071f");
 
   return (
-    <main className="page-shell">
-      <div className="container subnav">
-        <Link className="brand" href="/">
-          ϟ Lumo<span>Card</span>
+    <main className="lc-page" dir="rtl">
+      <header className="lc-topbar">
+        <Link href="/" className="lc-brand">
+          <span className="lc-logo">L</span>
+          <span>
+            Lumo<span className="lc-purple">Card</span>
+          </span>
         </Link>
 
-        <div className="inline-actions">
-          <Link
-            className="nav-link"
-            href={`/${profile.username}`}
-            target="_blank"
-          >
-            نمایش کارت ↗
-          </Link>
+        <div className="lc-top-actions">
+          {profile && (
+            <a
+              className="lc-public-link"
+              href={`/${encodeURIComponent(profile.username)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              مشاهده کارت ↗
+            </a>
+          )}
 
           <button
-            type="button"
-            className="danger-link"
-            onClick={logout}
+            className="lc-save"
+            form="lc-form"
+            type="submit"
+            disabled={saving || !profile}
           >
-            خروج
+            {saving ? "در حال ذخیره..." : "💾 ذخیره تغییرات"}
           </button>
         </div>
-      </div>
+      </header>
 
-      <section className="panel">
-        <div className="dashboard-header">
-          <div>
-            <h1>مدیریت کارت تو ✨</h1>
-            <p>
-              اطلاعات، اپلیکیشن‌ها و ظاهر کارتت رو مدیریت کن.
-            </p>
-          </div>
-        </div>
+      <div className="lc-layout">
+        <aside className="lc-sidebar">
+          <div className="lc-sidebar-heading">
+            <span className="lc-avatar">
+              {(profileForm.full_name || "L")
+                .charAt(0)
+                .toUpperCase()}
+            </span>
 
-        {error && <div className="notice">{error}</div>}
-        {message && (
-          <div className="notice success">{message}</div>
-        )}
-
-        <div className="url-box">
-          <span dir="ltr">{publicUrl}</span>
-          <a
-            href={`/${profile.username}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            باز کردن ↗
-          </a>
-        </div>
-
-        <form onSubmit={save}>
-          <div className="section-card">
-            <h2>اطلاعات عمومی</h2>
-
-            <div className="form-grid">
-              <div className="field">
-                <label>نام</label>
-                <input
-                  name="full_name"
-                  required
-                  defaultValue={profile.full_name || ""}
-                />
-              </div>
-
-              <div className="field">
-                <label>آدرس کارت</label>
-                <input
-                  name="username"
-                  required
-                  defaultValue={profile.username || ""}
-                  pattern="[a-zA-Z0-9_-]+"
-                  minLength={3}
-                  maxLength={24}
-                  dir="ltr"
-                />
-              </div>
-
-              <div className="field">
-                <label>عنوان شغلی</label>
-                <input
-                  name="job"
-                  defaultValue={profile.job || ""}
-                  placeholder="Developer & Content Creator"
-                />
-              </div>
-
-              <div className="field">
-                <label>شماره تماس</label>
-                <input
-                  name="phone"
-                  defaultValue={profile.phone || ""}
-                  dir="ltr"
-                />
-              </div>
-
-              <div className="field">
-                <label>وب‌سایت اصلی</label>
-                <input
-                  name="website"
-                  defaultValue={profile.website || ""}
-                  dir="ltr"
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="field">
-                <label>موقعیت</label>
-                <input
-                  name="location"
-                  defaultValue={profile.location || ""}
-                  placeholder="Tehran, Iran"
-                />
-              </div>
-
-              <div className="field full">
-                <label>بیو</label>
-                <textarea
-                  name="bio"
-                  defaultValue={profile.bio || ""}
-                  maxLength={500}
-                  placeholder="💜 با تکنولوژی، رویاها واقعی می‌شن"
-                />
-              </div>
+            <div>
+              <strong>
+                {profileForm.full_name || "کارت من"}
+              </strong>
+              <small>
+                @{profileForm.username || "username"}
+              </small>
             </div>
           </div>
 
-          <div className="section-card">
-            <h2>شبکه‌های اجتماعی پایه</h2>
+          <p className="lc-nav-title">مدیریت کارت</p>
 
-            <div className="form-grid">
-              <div className="field">
-                <label>Instagram</label>
-                <input
-                  name="instagram"
-                  defaultValue={profile.social_links?.instagram || ""}
-                  dir="ltr"
-                  placeholder="https://instagram.com/username"
-                />
-              </div>
+          {[
+            ["profile", "👤", "اطلاعات پروفایل"],
+            ["phones", "📞", "شماره‌های تماس"],
+            ["apps", "🔗", "شبکه‌های اجتماعی"],
+            ["custom", "➕", "لینک‌های دلخواه"],
+            ["design", "🎨", "طراحی کارت"],
+          ].map(([id, icon, label]) => (
+            <button
+              type="button"
+              key={id}
+              className={`lc-nav-item ${
+                activeSection === id ? "active" : ""
+              }`}
+              onClick={() => setActiveSection(id)}
+            >
+              <span>{icon}</span>
+              {label}
+            </button>
+          ))}
 
-              <div className="field">
-                <label>Telegram</label>
-                <input
-                  name="telegram"
-                  defaultValue={profile.social_links?.telegram || ""}
-                  dir="ltr"
-                  placeholder="https://t.me/username"
-                />
-              </div>
-
-              <div className="field">
-                <label>YouTube</label>
-                <input
-                  name="youtube"
-                  defaultValue={profile.social_links?.youtube || ""}
-                  dir="ltr"
-                  placeholder="https://youtube.com/@username"
-                />
-              </div>
-
-              <div className="field">
-                <label>WhatsApp</label>
-                <input
-                  name="whatsapp"
-                  defaultValue={profile.social_links?.whatsapp || ""}
-                  dir="ltr"
-                  placeholder="https://wa.me/..."
-                />
-              </div>
-
-              <div className="field full">
-                <label>لینک اجتماعی دیگر</label>
-                <input
-                  name="social_website"
-                  defaultValue={profile.social_links?.website || ""}
-                  dir="ltr"
-                  placeholder="https://..."
-                />
-              </div>
+          <div className="lc-sidebar-bottom">
+            <div className="lc-tip">
+              <span>✨</span>
+              <strong>کارتت رو خاص کن!</strong>
+              <p>
+                اطلاعاتت رو کامل کن تا افراد راحت‌تر باهات
+                ارتباط بگیرن.
+              </p>
             </div>
+
+            <Link href="/" className="lc-home-link">
+              ← بازگشت به سایت
+            </Link>
+          </div>
+        </aside>
+
+        <section className="lc-main">
+          <div className="lc-heading">
+            <div>
+              <p className="lc-eyebrow">LUMOCARD STUDIO</p>
+              <h1>داشبورد کارت من</h1>
+              <p>
+                اطلاعات و ظاهر کارت دیجیتالت رو مدیریت کن.
+              </p>
+            </div>
+
+            <span className="lc-status">● فضای ویرایش</span>
           </div>
 
-          <div className="section-card">
-            <h2>کتابخانه اپلیکیشن‌ها 📱</h2>
-
-            <p className="muted">
-              اپلیکیشن رو انتخاب کن، یوزرنیم یا لینک کامل رو وارد
-              کن و بعد «افزودن» رو بزن.
-            </p>
-
-            <div className="form-grid">
-              <div className="field full">
-                <label>جست‌وجوی اپلیکیشن</label>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="مثلاً روبیکا، Instagram، GitHub..."
-                />
-              </div>
-
-              <div className="field">
-                <label>
-                  انتخاب اپلیکیشن ({filteredApps.length} مورد)
-                </label>
-
-                <select
-                  value={selectedApp}
-                  onChange={(e) => setSelectedApp(e.target.value)}
-                >
-                  {filteredApps.map((app) => (
-                    <option key={app.id} value={app.id}>
-                      {app.icon} {app.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label>یوزرنیم یا لینک</label>
-                <input
-                  value={appInput}
-                  onChange={(e) => setAppInput(e.target.value)}
-                  dir="ltr"
-                  placeholder="@username یا https://..."
-                />
-              </div>
-
-              <div className="field full">
-                <button
-                  type="button"
-                  className="button"
-                  onClick={addApp}
-                >
-                  افزودن اپلیکیشن +
-                </button>
-              </div>
+          {error && (
+            <div className="lc-alert error">
+              ⚠️ {error}
             </div>
+          )}
 
-            <div className="app-list">
-              {Object.entries(appLinks)
-                .filter(([, url]) => Boolean(url))
-                .map(([id, url]) => {
-                  const app = apps.find((item) => item.id === id);
+          {message && (
+            <div className="lc-alert success">
+              ✓ {message}
+            </div>
+          )}
 
-                  return (
-                    <div key={id} className="app-row">
-                      <span className="app-icon">
-                        {app?.icon || "🔗"}
-                      </span>
+          <form id="lc-form" onSubmit={saveDashboard}>
+            {activeSection === "profile" && (
+              <section className="lc-panel">
+                <div className="lc-panel-heading">
+                  <div>
+                    <h2>اطلاعات پروفایل</h2>
+                    <p>
+                      اطلاعات اصلی کارت دیجیتالت رو وارد کن.
+                    </p>
+                  </div>
+                  <span>👤</span>
+                </div>
 
-                      <div className="app-row-info">
-                        <strong>{app?.name || id}</strong>
-                        <small dir="ltr">{url}</small>
+                <div className="lc-grid">
+                  <label className="lc-field">
+                    نام و نام خانوادگی
+                    <input
+                      value={profileForm.full_name}
+                      onChange={(e) =>
+                        updateProfileField(
+                          "full_name",
+                          e.target.value
+                        )
+                      }
+                      placeholder="مثلاً سامیار برنایی"
+                    />
+                  </label>
+
+                  <label className="lc-field">
+                    نام کاربری کارت
+                    <input
+                      value={profileForm.username}
+                      onChange={(e) =>
+                        updateProfileField(
+                          "username",
+                          e.target.value
+                        )
+                      }
+                      placeholder="samiyar"
+                      dir="ltr"
+                    />
+                    <small>
+                      آدرس کارت: lumocard.ir/
+                      {profileForm.username || "username"}
+                    </small>
+                  </label>
+
+                  <label className="lc-field">
+                    عنوان شغلی
+                    <input
+                      value={profileForm.job}
+                      onChange={(e) =>
+                        updateProfileField("job", e.target.value)
+                      }
+                      placeholder="مثلاً طراح گرافیک"
+                    />
+                  </label>
+
+                  <label className="lc-field">
+                    ایمیل
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(e) =>
+                        updateProfileField(
+                          "email",
+                          e.target.value
+                        )
+                      }
+                      placeholder="you@example.com"
+                      dir="ltr"
+                    />
+                  </label>
+
+                  <label className="lc-field">
+                    وب‌سایت
+                    <input
+                      value={profileForm.website}
+                      onChange={(e) =>
+                        updateProfileField(
+                          "website",
+                          e.target.value
+                        )
+                      }
+                      placeholder="https://example.com"
+                      dir="ltr"
+                    />
+                  </label>
+
+                  <label className="lc-field">
+                    موقعیت مکانی
+                    <input
+                      value={profileForm.location}
+                      onChange={(e) =>
+                        updateProfileField(
+                          "location",
+                          e.target.value
+                        )
+                      }
+                      placeholder="مثلاً تهران"
+                    />
+                  </label>
+
+                  <label className="lc-field lc-full">
+                    درباره من
+                    <textarea
+                      rows={5}
+                      value={profileForm.bio}
+                      onChange={(e) =>
+                        updateProfileField("bio", e.target.value)
+                      }
+                      placeholder="کمی درباره خودت بنویس..."
+                    />
+                  </label>
+                </div>
+
+                <div className="lc-info-box">
+                  💡 برای اضافه کردن چند شماره تلفن، از بخش
+                  «شماره‌های تماس» استفاده کن.
+                </div>
+              </section>
+            )}
+
+            {activeSection === "phones" && (
+              <section className="lc-panel">
+                <div className="lc-panel-heading">
+                  <div>
+                    <h2>شماره‌های تماس</h2>
+                    <p>
+                      چند شماره با عنوان‌های مختلف اضافه کن.
+                    </p>
+                  </div>
+                  <span>📞</span>
+                </div>
+
+                <div className="lc-add-box">
+                  <div className="lc-grid">
+                    <label className="lc-field">
+                      عنوان شماره
+                      <input
+                        value={phoneTitle}
+                        onChange={(e) =>
+                          setPhoneTitle(e.target.value)
+                        }
+                        placeholder="مثلاً شماره کاری"
+                      />
+                    </label>
+
+                    <label className="lc-field">
+                      شماره تلفن
+                      <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) =>
+                          setPhoneNumber(e.target.value)
+                        }
+                        placeholder="+989121234567"
+                        dir="ltr"
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="lc-primary"
+                    onClick={addPhone}
+                  >
+                    ＋ افزودن شماره
+                  </button>
+                </div>
+
+                <div className="lc-list">
+                  {phones.map((phone, index) => (
+                    <div className="lc-list-item" key={phone.id}>
+                      <span className="lc-list-icon">📱</span>
+
+                      <div className="lc-list-content">
+                        <input
+                          aria-label="عنوان شماره"
+                          value={phone.title}
+                          onChange={(e) =>
+                            updatePhone(
+                              phone.id,
+                              "title",
+                              e.target.value
+                            )
+                          }
+                          placeholder="عنوان شماره"
+                        />
+
+                        <input
+                          aria-label="شماره تلفن"
+                          value={phone.number}
+                          onChange={(e) =>
+                            updatePhone(
+                              phone.id,
+                              "number",
+                              e.target.value
+                            )
+                          }
+                          placeholder="شماره تلفن"
+                          dir="ltr"
+                        />
                       </div>
 
-                      <button
-                        type="button"
-                        className="danger-link"
-                        onClick={() => removeApp(id)}
-                      >
-                        حذف
-                      </button>
+                      <div className="lc-item-actions">
+                        <button
+                          type="button"
+                          onClick={() => movePhone(index, -1)}
+                          disabled={index === 0}
+                          aria-label="انتقال به بالا"
+                        >
+                          ↑
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => movePhone(index, 1)}
+                          disabled={index === phones.length - 1}
+                          aria-label="انتقال به پایین"
+                        >
+                          ↓
+                        </button>
+
+                        <button
+                          type="button"
+                          className="lc-delete"
+                          onClick={() => deletePhone(phone.id)}
+                          aria-label="حذف شماره"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
-                  );
-                })}
-            </div>
-          </div>
+                  ))}
 
-          <div className="section-card">
-            <h2>ظاهر کارت 🎨</h2>
+                  {phones.length === 0 && (
+                    <div className="lc-empty">
+                      هنوز شماره‌ای اضافه نکردی.
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
 
-            <div className="field">
-              <label>قالب شغلی</label>
+            {activeSection === "apps" && (
+              <section className="lc-panel">
+                <div className="lc-panel-heading">
+                  <div>
+                    <h2>شبکه‌های اجتماعی</h2>
+                    <p>
+                      فقط لینک‌هایی رو وارد کن که می‌خوای روی
+                      کارتت نمایش داده بشن.
+                    </p>
+                  </div>
+                  <span>🔗</span>
+                </div>
 
-              <select
-                value={appearance.template || "personal"}
-                onChange={(e) =>
-                  updateAppearance({ template: e.target.value })
-                }
-              >
-                {templates.map(([id, title]) => (
-                  <option key={id} value={id}>
-                    {title}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <input
+                  className="lc-search"
+                  value={appSearch}
+                  onChange={(e) =>
+                    setAppSearch(e.target.value)
+                  }
+                  placeholder="🔍 جست‌وجوی شبکه اجتماعی..."
+                />
 
-            <div className="theme-grid">
-              {themes.map((theme) => (
-                <button
-                  type="button"
-                  key={theme.id}
-                  className={`theme-option ${
-                    appearance.background === theme.id ? "selected" : ""
-                  }`}
-                  onClick={() => applyTheme(theme.id)}
-                >
-                  <span
-                    className="theme-swatch"
-                    style={{
-                      background: theme.backgroundColor,
-                      borderColor: theme.accent,
-                    }}
+                <div className="lc-app-grid">
+                  {filteredApps.map((app) => (
+                    <div className="lc-app-card" key={app.id}>
+                      <div className="lc-app-title">
+                        <span>{app.icon}</span>
+                        <strong>{app.name}</strong>
+                      </div>
+
+                      <input
+                        value={appValues[app.id] || ""}
+                        onChange={(e) =>
+                          setAppValues((previous) => ({
+                            ...previous,
+                            [app.id]: e.target.value,
+                          }))
+                        }
+                        placeholder={app.placeholder}
+                        dir="ltr"
+                      />
+
+                      {appValues[app.id]?.trim() && (
+                        <button
+                          type="button"
+                          className="lc-clear"
+                          onClick={() =>
+                            setAppValues((previous) => ({
+                              ...previous,
+                              [app.id]: "",
+                            }))
+                          }
+                        >
+                          حذف لینک
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="lc-info-box">
+                  برای اپ‌هایی که آدرس اختصاصی دارند، لینک کامل
+                  را وارد کن. برای مثال:
+                  <br />
+                  <code>https://youtube.com/@yourchannel</code>
+                </div>
+              </section>
+            )}
+
+            {activeSection === "custom" && (
+              <section className="lc-panel">
+                <div className="lc-panel-heading">
+                  <div>
+                    <h2>لینک‌های دلخواه</h2>
+                    <p>
+                      هر لینک دیگری که نیاز داری به کارت اضافه
+                      کن.
+                    </p>
+                  </div>
+                  <span>➕</span>
+                </div>
+
+                <div className="lc-add-box">
+                  <div className="lc-grid">
+                    <label className="lc-field">
+                      عنوان لینک
+                      <input
+                        value={customTitle}
+                        onChange={(e) =>
+                          setCustomTitle(e.target.value)
+                        }
+                        placeholder="مثلاً نمونه‌کارهای من"
+                      />
+                    </label>
+
+                    <label className="lc-field">
+                      آدرس لینک
+                      <input
+                        value={customUrl}
+                        onChange={(e) =>
+                          setCustomUrl(e.target.value)
+                        }
+                        placeholder="https://example.com"
+                        dir="ltr"
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="lc-primary"
+                    onClick={addCustomLink}
                   >
-                    <span style={{ background: theme.accent }} />
-                  </span>
+                    ＋ افزودن لینک
+                  </button>
+                </div>
 
-                  <span>{theme.name}</span>
-                </button>
-              ))}
-            </div>
+                <div className="lc-list">
+                  {customLinks.map((item, index) => (
+                    <div className="lc-list-item" key={item.id}>
+                      <span className="lc-list-icon">🌐</span>
 
-            <div className="form-grid color-grid">
-              {([
-                ["backgroundColor", "رنگ پس‌زمینه", "#10071f"],
-                ["textColor", "رنگ نوشته‌ها", "#ffffff"],
-                ["accent", "رنگ اصلی و حاشیه‌ها", "#a855f7"],
-                ["buttonColor", "رنگ دکمه‌ها", "#28133e"],
-                ["iconColor", "رنگ آیکون‌ها", "#c084fc"],
-              ] as const).map(([key, title, fallback]) => (
-                <div className="field color-field" key={key}>
-                  <label>{title}</label>
+                      <div className="lc-list-content">
+                        <input
+                          aria-label="عنوان لینک"
+                          value={item.title}
+                          onChange={(e) =>
+                            setCustomLinks((previous) =>
+                              previous.map((link) =>
+                                link.id === item.id
+                                  ? {
+                                      ...link,
+                                      title: e.target.value,
+                                    }
+                                  : link
+                              )
+                            )
+                          }
+                          placeholder="عنوان لینک"
+                        />
 
-                  <div className="color-control">
+                        <input
+                          aria-label="آدرس لینک"
+                          value={item.url}
+                          onChange={(e) =>
+                            setCustomLinks((previous) =>
+                              previous.map((link) =>
+                                link.id === item.id
+                                  ? {
+                                      ...link,
+                                      url: e.target.value,
+                                    }
+                                  : link
+                              )
+                            )
+                          }
+                          placeholder="https://example.com"
+                          dir="ltr"
+                        />
+                      </div>
+
+                      <div className="lc-item-actions">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            moveCustomLink(index, -1)
+                          }
+                          disabled={index === 0}
+                          aria-label="انتقال به بالا"
+                        >
+                          ↑
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            moveCustomLink(index, 1)
+                          }
+                          disabled={
+                            index === customLinks.length - 1
+                          }
+                          aria-label="انتقال به پایین"
+                        >
+                          ↓
+                        </button>
+
+                        <button
+                          type="button"
+                          className="lc-delete"
+                          onClick={() =>
+                            deleteCustomLink(item.id)
+                          }
+                          aria-label="حذف لینک"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {customLinks.length === 0 && (
+                    <div className="lc-empty">
+                      هنوز لینک دلخواهی اضافه نکردی.
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {activeSection === "design" && (
+              <section className="lc-panel">
+                <div className="lc-panel-heading">
+                  <div>
+                    <h2>طراحی کارت</h2>
+                    <p>
+                      ظاهر کارتت رو همین‌جا تغییر بده.
+                    </p>
+                  </div>
+                  <span>🎨</span>
+                </div>
+
+                <h3 className="lc-subheading">قالب آماده</h3>
+
+                <div className="lc-template-grid">
+                  {TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      className={`lc-template ${
+                        appearance.template === template.id
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        updateAppearance(
+                          "template",
+                          template.id
+                        )
+                      }
+                    >
+                      <span>{template.icon}</span>
+                      {template.name}
+                      {appearance.template === template.id && (
+                        <b>✓</b>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <h3 className="lc-subheading">
+                  ترکیب‌های رنگی
+                </h3>
+
+                <div className="lc-preset-grid">
+                  {PRESETS.map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      className="lc-preset"
+                      onClick={() => {
+                        setAppearance((previous) => ({
+                          ...previous,
+                          background: preset.background,
+                          gradientStart: preset.start,
+                          gradientEnd: preset.end,
+                          accent: preset.accent,
+                        }));
+                      }}
+                    >
+                      <span
+                        className="lc-preset-swatch"
+                        style={{
+                          background: `linear-gradient(135deg, ${preset.start}, ${preset.end})`,
+                        }}
+                      />
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+
+                <h3 className="lc-subheading">
+                  نوع پس‌زمینه
+                </h3>
+
+                <div className="lc-choice-row">
+                  {[
+                    ["solid", "رنگ ساده"],
+                    ["gradient", "گرادینت"],
+                    ["image", "تصویر"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      key={value}
+                      className={`lc-choice ${
+                        appearance.backgroundType === value
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        updateAppearance(
+                          "backgroundType",
+                          value
+                        )
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {appearance.backgroundType === "solid" && (
+                  <label className="lc-color-field">
+                    رنگ پس‌زمینه
                     <input
                       type="color"
-                      value={validColor(appearance[key], fallback)}
+                      value={appearance.background}
                       onChange={(e) =>
-                        updateAppearance({
-                          [key]: e.target.value,
-                          ...(key === "backgroundColor"
-                            ? { background: "custom" }
-                            : {}),
-                        })
+                        updateAppearance(
+                          "background",
+                          e.target.value
+                        )
                       }
-                      aria-label={title}
                     />
+                  </label>
+                )}
 
-                    <input
-                      type="text"
-                      value={appearance[key] || fallback}
-                      onChange={(e) =>
-                        updateAppearance({
-                          [key]: e.target.value,
-                          ...(key === "backgroundColor"
-                            ? { background: "custom" }
-                            : {}),
-                        })
-                      }
-                      dir="ltr"
-                      maxLength={7}
-                      aria-label={`${title} به صورت کد رنگ`}
-                    />
+                {appearance.backgroundType === "gradient" && (
+                  <div className="lc-grid">
+                    <label className="lc-color-field">
+                      رنگ اول
+                      <input
+                        type="color"
+                        value={appearance.gradientStart}
+                        onChange={(e) =>
+                          updateAppearance(
+                            "gradientStart",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label className="lc-color-field">
+                      رنگ دوم
+                      <input
+                        type="color"
+                        value={appearance.gradientEnd}
+                        onChange={(e) =>
+                          updateAppearance(
+                            "gradientEnd",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </label>
                   </div>
+                )}
+
+                {appearance.backgroundType === "image" && (
+                  <label className="lc-field">
+                    آدرس تصویر پس‌زمینه
+                    <input
+                      value={appearance.backgroundImage}
+                      onChange={(e) =>
+                        updateAppearance(
+                          "backgroundImage",
+                          e.target.value
+                        )
+                      }
+                      placeholder="https://example.com/image.jpg"
+                      dir="ltr"
+                    />
+                  </label>
+                )}
+
+                <div className="lc-grid lc-design-controls">
+                  <label className="lc-color-field">
+                    رنگ اصلی کارت
+                    <input
+                      type="color"
+                      value={appearance.accent}
+                      onChange={(e) =>
+                        updateAppearance(
+                          "accent",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </label>
+
+                  <label className="lc-color-field">
+                    رنگ نوشته
+                    <input
+                      type="color"
+                      value={appearance.textColor}
+                      onChange={(e) =>
+                        updateAppearance(
+                          "textColor",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </label>
+
+                  <label className="lc-color-field">
+                    رنگ دکمه‌ها
+                    <input
+                      type="color"
+                      value={appearance.buttonColor}
+                      onChange={(e) =>
+                        updateAppearance(
+                          "buttonColor",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </label>
                 </div>
-              ))}
-            </div>
 
-            <div className="field">
-              <label>نوع پس‌زمینه</label>
-
-              <select
-                value={appearance.backgroundType || "solid"}
-                onChange={(e) =>
-                  updateAppearance({
-                    backgroundType: e.target.value as Appearance["backgroundType"],
-                  })
-                }
-              >
-                <option value="solid">یک‌رنگ</option>
-                <option value="gradient">گرادیانت</option>
-                <option value="image">تصویر</option>
-              </select>
-            </div>
-
-            {appearance.backgroundType === "gradient" && (
-              <div className="field">
-                <label>رنگ دوم گرادیانت</label>
-
-                <input
-                  type="color"
-                  value={validColor(
-                    appearance.backgroundEndColor,
-                    "#28133e",
-                  )}
-                  onChange={(e) =>
-                    updateAppearance({
-                      backgroundEndColor: e.target.value,
-                    })
-                  }
-                />
-              </div>
+                <label className="lc-field lc-radius">
+                  گردی گوشه‌ها: {appearance.radius}px
+                  <input
+                    type="range"
+                    min="0"
+                    max="32"
+                    value={appearance.radius}
+                    onChange={(e) =>
+                      updateAppearance(
+                        "radius",
+                        Number(e.target.value)
+                      )
+                    }
+                  />
+                </label>
+              </section>
             )}
 
-            {appearance.backgroundType === "image" && (
-              <div className="field">
-                <label>آدرس تصویر پس‌زمینه</label>
+            <div className="lc-form-footer">
+              <span>
+                {saving
+                  ? "در حال ذخیره اطلاعات..."
+                  : "تغییراتت رو فراموش نکن ذخیره کنی."}
+              </span>
 
-                <input
-                  value={appearance.backgroundImage || ""}
-                  onChange={(e) =>
-                    updateAppearance({
-                      backgroundImage: e.target.value,
-                    })
-                  }
-                  dir="ltr"
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-            )}
-
-            <div className="field">
-              <label>انیمیشن کارت</label>
-
-              <select
-                value={appearance.animation || "none"}
-                onChange={(e) =>
-                  updateAppearance({
-                    animation: e.target.value as Appearance["animation"],
-                  })
-                }
+              <button
+                type="submit"
+                className="lc-save"
+                disabled={saving || !profile}
               >
-                <option value="none">بدون انیمیشن</option>
-                <option value="float">شناور</option>
-                <option value="glow">درخشش</option>
-              </select>
+                {saving ? "در حال ذخیره..." : "💾 ذخیره تغییرات"}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <aside className="lc-preview-column">
+          <div className="lc-preview-sticky">
+            <div className="lc-preview-heading">
+              <div>
+                <strong>پیش‌نمایش زنده</strong>
+                <p>تغییرات رو همین‌جا ببین.</p>
+              </div>
+              <span>👁️</span>
             </div>
 
-            <div className="preview-wrap">
-              <h3>پیش‌نمایش کارت</h3>
-
-              <article
-                className={`live-preview animation-${appearance.animation || "none"}`}
+            <div
+              className="lc-card-preview"
+              style={{
+                background: cardBackground,
+                color: appearance.textColor,
+                borderRadius: `${appearance.radius}px`,
+              }}
+            >
+              <div
+                className="lc-card-orb"
                 style={{
-                  background: previewBackground,
-                  color: validColor(appearance.textColor, "#ffffff"),
-                  borderColor: validColor(appearance.accent, "#a855f7"),
+                  background: appearance.accent,
                 }}
-              >
-                <div
-                  className="preview-brand"
-                  style={{ color: appearance.accent }}
-                >
-                  ϟ LumoCard
-                </div>
+              />
 
+              <div className="lc-card-content">
                 <div
-                  className="preview-avatar"
+                  className="lc-card-avatar"
                   style={{
                     borderColor: appearance.accent,
                     color: appearance.accent,
                   }}
                 >
-                  {(profile.full_name || profile.username).slice(0, 2)}
+                  {(profileForm.full_name || "L")
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
 
-                <strong>{profile.full_name || "نام شما"}</strong>
+                <h2>
+                  {profileForm.full_name || "نام شما"}
+                </h2>
 
-                <span>{profile.job || "عنوان شغلی شما"}</span>
+                <p className="lc-card-job">
+                  {profileForm.job || "عنوان شغلی"}
+                </p>
+
+                <div className="lc-card-divider" />
+
+                <p className="lc-card-bio">
+                  {profileForm.bio ||
+                    "اینجا توضیح کوتاهی درباره خودت نمایش داده می‌شود."}
+                </p>
+
+                {phones.map((phone) => (
+                  <a
+                    key={phone.id}
+                    className="lc-preview-contact"
+                    href={`tel:${phone.number.replace(/[^\d+]/g, "")}`}
+                    style={{
+                      background: appearance.buttonColor,
+                      borderRadius: Math.max(
+                        8,
+                        appearance.radius - 6
+                      ),
+                    }}
+                  >
+                    <span>📞</span>
+                    <span>
+                      {phone.title || "شماره تماس"}
+                    </span>
+                  </a>
+                ))}
+
+                {profileForm.email && (
+                  <div
+                    className="lc-preview-contact"
+                    style={{
+                      background: appearance.buttonColor,
+                    }}
+                  >
+                    ✉️ {profileForm.email}
+                  </div>
+                )}
+
+                {profileForm.website && (
+                  <div
+                    className="lc-preview-contact"
+                    style={{
+                      background: appearance.buttonColor,
+                    }}
+                  >
+                    🌐 وب‌سایت
+                  </div>
+                )}
+
+                {APPS.filter((app) =>
+                  appValues[app.id]?.trim()
+                ).map((app) => (
+                  <div
+                    key={app.id}
+                    className="lc-preview-contact"
+                    style={{
+                      background: appearance.buttonColor,
+                    }}
+                  >
+                    <span>{app.icon}</span>
+                    <span>{app.name}</span>
+                  </div>
+                ))}
+
+                {customLinks.map((item) => (
+                  <div
+                    key={item.id}
+                    className="lc-preview-contact"
+                    style={{
+                      background: appearance.buttonColor,
+                    }}
+                  >
+                    🔗 {item.title}
+                  </div>
+                ))}
+
+                {profileForm.location && (
+                  <div
+                    className="lc-preview-contact"
+                    style={{
+                      background: appearance.buttonColor,
+                    }}
+                  >
+                    📍 {profileForm.location}
+                  </div>
+                )}
 
                 <div
-                  className="preview-button"
-                  style={{
-                    background: appearance.buttonColor,
-                    borderColor: appearance.accent,
-                  }}
+                  className="lc-card-brand"
+                  style={{ color: appearance.accent }}
                 >
-                  <span style={{ color: appearance.iconColor }}>📱</span>
-                  <span>شبکه‌های اجتماعی</span>
-                  <span style={{ color: appearance.accent }}>↗</span>
+                  LumoCard
                 </div>
-              </article>
+              </div>
+            </div>
 
-              <small className="muted">
-                این پیش‌نمایش تنظیمات کارت را نشان می‌دهد. برای اعمال
-                همین ظاهر در صفحه عمومی پروفایل، آن صفحه هم باید
-                تنظیمات appearance را بخواند.
-              </small>
+            <div className="lc-preview-note">
+              ✨ این پیش‌نمایش برای بررسی ظاهر کارت است. صفحه
+              عمومی باید اطلاعات ذخیره‌شده را نیز نمایش دهد.
             </div>
           </div>
-
-          <button className="button form-submit" disabled={saving}>
-            {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-          </button>
-        </form>
-      </section>
+        </aside>
+      </div>
 
       <style jsx>{`
-        .muted {
-          display: block;
-          opacity: 0.72;
-          margin: 8px 0 14px;
-          line-height: 1.8;
+        * {
+          box-sizing: border-box;
         }
 
-        .theme-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-          gap: 10px;
-          margin: 18px 0;
+        .lc-page {
+          min-height: 100vh;
+          background: #0b0b12;
+          color: #f4f1fa;
+          font-family: Arial, sans-serif;
+          direction: rtl;
         }
 
-        .theme-option {
+        .lc-topbar {
+          height: 76px;
+          padding: 0 28px;
           display: flex;
           align-items: center;
-          gap: 9px;
-          padding: 10px;
-          border: 1px solid #38333f;
-          border-radius: 12px;
-          background: transparent;
-          color: inherit;
-          cursor: pointer;
-          text-align: right;
-          transition: border-color 0.2s, transform 0.2s;
+          justify-content: space-between;
+          gap: 16px;
+          background: #101019;
+          border-bottom: 1px solid #262333;
+          position: sticky;
+          top: 0;
+          z-index: 10;
         }
 
-        .theme-option:hover {
-          transform: translateY(-2px);
-        }
-
-        .theme-option.selected {
-          border-color: #a855f7;
-          box-shadow: 0 0 0 1px #a855f7;
-        }
-
-        .theme-swatch {
-          width: 35px;
-          height: 35px;
-          border: 2px solid;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          flex: 0 0 auto;
-        }
-
-        .theme-swatch span {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-        }
-
-        .color-grid {
-          margin-top: 20px;
-        }
-
-        .color-control {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .color-control input[type="color"] {
-          width: 48px;
-          height: 42px;
-          padding: 3px;
-          cursor: pointer;
-          flex: 0 0 auto;
-        }
-
-        .color-control input[type="text"] {
-          min-width: 0;
-          width: 100%;
-        }
-
-        .app-list {
-          display: grid;
-          gap: 8px;
-          margin-top: 18px;
-        }
-
-        .app-row {
+        .lc-brand {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 10px;
-          border: 1px solid rgba(150, 150, 150, 0.25);
-          border-radius: 12px;
-          min-width: 0;
+          color: white;
+          text-decoration: none;
+          font-size: 21px;
+          font-weight: 800;
         }
 
-        .app-icon {
+        .lc-logo {
           width: 38px;
           height: 38px;
-          border-radius: 10px;
+          border-radius: 12px;
           display: grid;
           place-items: center;
-          background: rgba(140, 80, 220, 0.12);
-          flex: 0 0 auto;
+          background: linear-gradient(135deg, #a855f7, #6d28d9);
+          color: white;
+        }
+
+        .lc-purple {
+          color: #c084fc;
+        }
+
+        .lc-top-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .lc-public-link {
+          color: #d8c3fa;
+          text-decoration: none;
+          font-size: 13px;
+        }
+
+        .lc-save,
+        .lc-primary {
+          border: 0;
+          border-radius: 11px;
+          padding: 12px 17px;
+          color: white;
+          font-weight: 700;
+          background: linear-gradient(135deg, #9333ea, #6d28d9);
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .lc-save:hover,
+        .lc-primary:hover {
+          filter: brightness(1.15);
+          transform: translateY(-1px);
+        }
+
+        .lc-save:disabled {
+          opacity: 0.6;
+          cursor: wait;
+          transform: none;
+        }
+
+        .lc-layout {
+          max-width: 1700px;
+          margin: auto;
+          padding: 25px;
+          display: grid;
+          grid-template-columns: 220px minmax(0, 1fr) 300px;
+          gap: 24px;
+          align-items: start;
+        }
+
+        .lc-sidebar {
+          position: sticky;
+          top: 100px;
+          min-width: 0;
+          padding: 16px;
+          border: 1px solid #272334;
+          background: #111019;
+          border-radius: 17px;
+        }
+
+        .lc-sidebar-heading {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding-bottom: 19px;
+          border-bottom: 1px solid #292536;
+          overflow: hidden;
+        }
+
+        .lc-avatar {
+          width: 42px;
+          height: 42px;
+          flex-shrink: 0;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background: #332048;
+          color: #e9d5ff;
+          font-weight: 800;
+        }
+
+        .lc-sidebar-heading strong,
+        .lc-sidebar-heading small {
+          display: block;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-sidebar-heading strong {
+          font-size: 13px;
+        }
+
+        .lc-sidebar-heading small {
+          margin-top: 5px;
+          color: #a89db9;
+          font-size: 11px;
+          direction: ltr;
+          text-align: right;
+        }
+
+        .lc-nav-title {
+          margin: 23px 0 10px;
+          color: #82768f;
+          font-size: 11px;
+        }
+
+        .lc-nav-item {
+          width: 100%;
+          border: 1px solid transparent;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 10px;
+          margin-bottom: 5px;
+          background: transparent;
+          color: #c7bfd3;
+          text-align: right;
+          cursor: pointer;
+          font-size: 12px;
+        }
+
+        .lc-nav-item.active {
+          background: #29183b;
+          border-color: #59337a;
+          color: #e9d5ff;
+        }
+
+        .lc-nav-item:hover {
+          background: #21182c;
+        }
+
+        .lc-sidebar-bottom {
+          margin-top: 25px;
+        }
+
+        .lc-tip {
+          padding: 13px;
+          background: #191325;
+          border: 1px solid #352544;
+          border-radius: 12px;
+        }
+
+        .lc-tip > span {
           font-size: 20px;
         }
 
-        .app-row-info {
+        .lc-tip strong {
+          display: block;
+          margin-top: 9px;
+          font-size: 12px;
+        }
+
+        .lc-tip p {
+          color: #a99db8;
+          font-size: 11px;
+          line-height: 1.9;
+          margin-bottom: 0;
+        }
+
+        .lc-home-link {
+          display: block;
+          color: #a99db8;
+          text-decoration: none;
+          margin-top: 17px;
+          font-size: 12px;
+        }
+
+        .lc-main {
+          min-width: 0;
+        }
+
+        .lc-heading {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          margin: 4px 0 22px;
+        }
+
+        .lc-eyebrow {
+          color: #c084fc !important;
+          letter-spacing: 2px;
+          font-size: 10px !important;
+          font-weight: 800;
+          margin-bottom: 8px !important;
+        }
+
+        .lc-heading h1 {
+          margin: 0 0 8px;
+          font-size: 26px;
+        }
+
+        .lc-heading p {
+          color: #9f95ac;
+          font-size: 12px;
+          margin: 0;
+          line-height: 1.8;
+        }
+
+        .lc-status {
+          flex-shrink: 0;
+          border: 1px solid #284a3d;
+          color: #86efac;
+          background: #10251c;
+          padding: 9px 12px;
+          border-radius: 9px;
+          font-size: 10px;
+        }
+
+        .lc-panel {
+          background: #111019;
+          border: 1px solid #292536;
+          border-radius: 16px;
+          padding: 23px;
+          margin-bottom: 20px;
+          min-width: 0;
+        }
+
+        .lc-panel-heading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          margin-bottom: 24px;
+        }
+
+        .lc-panel-heading h2 {
+          margin: 0 0 7px;
+          font-size: 18px;
+        }
+
+        .lc-panel-heading p {
+          color: #988ea7;
+          font-size: 12px;
+          margin: 0;
+          line-height: 1.8;
+        }
+
+        .lc-panel-heading > span {
+          font-size: 25px;
+        }
+
+        .lc-grid {
           display: grid;
-          gap: 4px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
+        }
+
+        .lc-field {
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+          color: #dcd4e6;
+          font-size: 12px;
+          min-width: 0;
+        }
+
+        .lc-full {
+          grid-column: 1 / -1;
+        }
+
+        .lc-field input,
+        .lc-field textarea,
+        .lc-list-content input,
+        .lc-app-card input,
+        .lc-search {
+          width: 100%;
+          min-width: 0;
+          background: #0c0b12;
+          color: white;
+          border: 1px solid #342d40;
+          border-radius: 9px;
+          padding: 12px;
+          outline: none;
+          font: inherit;
+          font-size: 12px;
+        }
+
+        .lc-field textarea {
+          resize: vertical;
+          line-height: 1.9;
+        }
+
+        .lc-field input:focus,
+        .lc-field textarea:focus,
+        .lc-list-content input:focus,
+        .lc-app-card input:focus,
+        .lc-search:focus {
+          border-color: #a855f7;
+          box-shadow: 0 0 0 3px #a855f719;
+        }
+
+        .lc-field small {
+          color: #91849f;
+          font-size: 10px;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-info-box {
+          margin-top: 22px;
+          border: 1px solid #392849;
+          background: #191223;
+          color: #c9b5df;
+          padding: 14px;
+          border-radius: 11px;
+          font-size: 12px;
+          line-height: 2;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-info-box code {
+          direction: ltr;
+          display: inline-block;
+          color: #d8b4fe;
+        }
+
+        .lc-add-box {
+          border: 1px solid #30283b;
+          background: #15121d;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 20px;
+        }
+
+        .lc-add-box .lc-primary {
+          margin-top: 17px;
+        }
+
+        .lc-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .lc-list-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+          border: 1px solid #302a3a;
+          background: #15131d;
+          border-radius: 11px;
+          padding: 12px;
+        }
+
+        .lc-list-icon {
+          font-size: 23px;
+          flex-shrink: 0;
+        }
+
+        .lc-list-content {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
           flex: 1;
           min-width: 0;
         }
 
-        .app-row-info small {
-          overflow-wrap: anywhere;
-          opacity: 0.7;
+        .lc-list-content input {
+          padding: 9px;
         }
 
-        .preview-wrap {
-          margin-top: 24px;
+        .lc-item-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          flex-shrink: 0;
         }
 
-        .live-preview {
-          max-width: 340px;
-          margin: 14px auto;
-          border: 1px solid;
-          border-radius: 22px;
-          padding: 22px;
-          display: grid;
-          justify-items: center;
-          gap: 12px;
+        .lc-item-actions button {
+          width: 29px;
+          height: 27px;
+          border: 1px solid #393044;
+          background: #211a2b;
+          color: white;
+          border-radius: 7px;
+          cursor: pointer;
+        }
+
+        .lc-item-actions button:disabled {
+          opacity: 0.3;
+          cursor: default;
+        }
+
+        .lc-item-actions .lc-delete {
+          color: #fca5a5;
+          border-color: #643039;
+          background: #30171e;
+          font-size: 17px;
+        }
+
+        .lc-empty {
+          padding: 25px;
           text-align: center;
-          transition: background 0.2s, color 0.2s;
+          color: #8e849c;
+          background: #15131d;
+          border: 1px dashed #393044;
+          border-radius: 11px;
+          font-size: 12px;
         }
 
-        .preview-brand {
-          font-weight: 800;
+        .lc-search {
+          margin-bottom: 17px;
         }
 
-        .preview-avatar {
-          width: 64px;
-          height: 64px;
+        .lc-app-grid {
           display: grid;
-          place-items: center;
-          border: 2px solid;
-          border-radius: 50%;
-          font-size: 22px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
         }
 
-        .preview-button {
-          width: 100%;
+        .lc-app-card {
+          border: 1px solid #302a3a;
+          border-radius: 11px;
+          background: #15131d;
+          padding: 12px;
+          min-width: 0;
+        }
+
+        .lc-app-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 11px;
+          font-size: 12px;
+        }
+
+        .lc-app-title > span {
+          font-size: 19px;
+        }
+
+        .lc-app-card input {
+          padding: 10px;
+        }
+
+        .lc-clear {
+          border: 0;
+          padding: 6px 0 0;
+          background: transparent;
+          color: #fca5a5;
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .lc-subheading {
+          font-size: 13px;
+          margin: 24px 0 13px;
+        }
+
+        .lc-template-grid,
+        .lc-preset-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .lc-template,
+        .lc-preset {
+          position: relative;
+          border: 1px solid #342d40;
+          border-radius: 11px;
+          padding: 12px;
+          background: #17141f;
+          color: #ddd4e9;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          text-align: right;
+          font-size: 11px;
+          min-width: 0;
+        }
+
+        .lc-template > span {
+          font-size: 20px;
+        }
+
+        .lc-template.selected,
+        .lc-choice.selected {
+          border-color: #a855f7;
+          background: #29183b;
+          color: #f3e8ff;
+        }
+
+        .lc-template b {
+          margin-right: auto;
+          color: #d8b4fe;
+        }
+
+        .lc-preset-swatch {
+          width: 31px;
+          height: 31px;
+          border-radius: 8px;
+          flex-shrink: 0;
+        }
+
+        .lc-choice-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 9px;
+        }
+
+        .lc-choice {
+          flex: 1;
+          min-width: 90px;
+          padding: 12px 8px;
+          border-radius: 9px;
+          border: 1px solid #342d40;
+          background: #17141f;
+          color: #d4cadf;
+          cursor: pointer;
+          font-size: 11px;
+        }
+
+        .lc-color-field {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-top: 17px;
+          border: 1px solid #342d40;
+          background: #15131d;
+          border-radius: 10px;
+          padding: 12px;
+          color: #dcd4e6;
+          font-size: 12px;
+        }
+
+        .lc-color-field input {
+          width: 42px;
+          height: 31px;
+          border: 0;
+          padding: 0;
+          background: transparent;
+          cursor: pointer;
+        }
+
+        .lc-design-controls {
+          margin-top: 16px;
+        }
+
+        .lc-radius {
+          margin-top: 20px;
+        }
+
+        .lc-radius input {
+          accent-color: #a855f7;
+        }
+
+        .lc-form-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          padding: 15px 0 35px;
+          color: #958ba2;
+          font-size: 11px;
+        }
+
+        .lc-preview-column {
+          min-width: 0;
+        }
+
+        .lc-preview-sticky {
+          position: sticky;
+          top: 100px;
+        }
+
+        .lc-preview-heading {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          gap: 8px;
+          margin: 4px 0 17px;
+        }
+
+        .lc-preview-heading strong {
+          font-size: 14px;
+        }
+
+        .lc-preview-heading p {
+          color: #92889f;
+          font-size: 11px;
+          margin: 7px 0 0;
+        }
+
+        .lc-preview-heading > span {
+          font-size: 22px;
+        }
+
+        .lc-card-preview {
+          position: relative;
+          overflow: hidden;
+          min-height: 340px;
+          padding: 23px 17px;
+          border: 1px solid #ffffff20;
+          box-shadow: 0 15px 40px #0004;
+          transition:
+            background 0.2s,
+            border-radius 0.2s;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-card-orb {
+          position: absolute;
+          width: 160px;
+          height: 160px;
+          top: -90px;
+          left: -65px;
+          border-radius: 50%;
+          opacity: 0.15;
+          filter: blur(10px);
+          pointer-events: none;
+        }
+
+        .lc-card-content {
+          position: relative;
+          z-index: 1;
+        }
+
+        .lc-card-avatar {
+          width: 64px;
+          height: 64px;
+          margin: 0 auto 13px;
+          border: 2px solid;
+          border-radius: 22px;
+          background: #0003;
+          display: grid;
+          place-items: center;
+          font-size: 28px;
+          font-weight: 800;
+        }
+
+        .lc-card-preview h2 {
+          text-align: center;
+          margin: 0 0 7px;
+          font-size: 18px;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-card-job {
+          text-align: center;
+          font-size: 11px;
+          opacity: 0.75;
+          margin: 0;
+        }
+
+        .lc-card-divider {
+          height: 1px;
+          background: #ffffff25;
+          margin: 18px 0;
+        }
+
+        .lc-card-bio {
+          text-align: center;
+          font-size: 11px;
+          line-height: 1.9;
+          margin-bottom: 17px;
+          opacity: 0.85;
+        }
+
+        .lc-preview-contact {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 11px;
+          margin-top: 8px;
+          border: 1px solid #ffffff10;
+          border-radius: 10px;
+          font-size: 10px;
+          overflow-wrap: anywhere;
+        }
+
+        .lc-card-brand {
+          margin-top: 24px;
+          text-align: center;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 1px;
+        }
+
+        .lc-preview-note {
+          margin-top: 13px;
           padding: 12px;
-          border: 1px solid;
-          border-radius: 12px;
+          border-radius: 10px;
+          background: #15111f;
+          border: 1px solid #30213f;
+          color: #ad9bbd;
+          font-size: 10px;
+          line-height: 1.9;
         }
 
-        .animation-float {
-          animation: floatCard 3s ease-in-out infinite;
+        .lc-alert {
+          padding: 13px 15px;
+          border-radius: 10px;
+          margin-bottom: 15px;
+          font-size: 12px;
+          line-height: 1.8;
+          overflow-wrap: anywhere;
         }
 
-        .animation-glow {
-          animation: glowCard 2s ease-in-out infinite alternate;
+        .lc-alert.error {
+          color: #fecaca;
+          border: 1px solid #71343c;
+          background: #32171d;
         }
 
-        @keyframes floatCard {
-          0%, 100% {
-            transform: translateY(0);
-          }
-
-          50% {
-            transform: translateY(-5px);
-          }
+        .lc-alert.success {
+          color: #bbf7d0;
+          border: 1px solid #285a40;
+          background: #11271b;
         }
 
-        @keyframes glowCard {
-          from {
-            box-shadow: 0 0 5px rgba(168, 85, 247, 0.15);
+        @media (max-width: 1200px) {
+          .lc-layout {
+            grid-template-columns: 190px minmax(0, 1fr);
           }
 
-          to {
-            box-shadow: 0 0 24px rgba(168, 85, 247, 0.45);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .animation-float,
-          .animation-glow {
-            animation: none;
+          .lc-preview-column {
+            grid-column: 2;
           }
 
-          .theme-option {
-            transition: none;
+          .lc-preview-sticky {
+            position: static;
+          }
+
+          .lc-card-preview {
+            max-width: 400px;
+            margin: auto;
           }
         }
 
-        @media (max-width: 540px) {
-          .app-row {
+        @media (max-width: 760px) {
+          .lc-topbar {
+            height: auto;
+            min-height: 68px;
+            padding: 12px 15px;
+          }
+
+          .lc-brand {
+            font-size: 17px;
+          }
+
+          .lc-logo {
+            width: 32px;
+            height: 32px;
+          }
+
+          .lc-top-actions {
+            gap: 9px;
+          }
+
+          .lc-public-link {
+            font-size: 11px;
+          }
+
+          .lc-save {
+            padding: 10px;
+            font-size: 10px;
+          }
+
+          .lc-layout {
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            gap: 18px;
+          }
+
+          .lc-sidebar,
+          .lc-main,
+          .lc-preview-column {
+            width: 100%;
+          }
+
+          .lc-sidebar {
+            position: static;
+          }
+
+          .lc-sidebar-bottom {
+            display: none;
+          }
+
+          .lc-sidebar-heading {
+            padding-bottom: 12px;
+          }
+
+          .lc-nav-title {
+            margin-top: 14px;
+          }
+
+          .lc-nav-item {
+            display: inline-flex;
+            width: auto;
+            margin: 4px 0 0 4px;
+            padding: 10px;
+          }
+
+          .lc-heading {
             align-items: flex-start;
-            flex-wrap: wrap;
           }
 
-          .app-row-info {
-            width: calc(100% - 60px);
+          .lc-heading h1 {
+            font-size: 22px;
+          }
+
+          .lc-status {
+            display: none;
+          }
+
+          .lc-panel {
+            padding: 16px;
+          }
+
+          .lc-grid,
+          .lc-app-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .lc-form-footer {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .lc-form-footer .lc-save {
+            width: 100%;
+          }
+
+          .lc-list-item {
+            gap: 8px;
+            padding: 9px;
+          }
+
+          .lc-list-icon {
+            font-size: 19px;
+          }
+
+          .lc-item-actions button {
+            width: 26px;
+            height: 25px;
+          }
+
+          .lc-template-grid,
+          .lc-preset-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .lc-preview-column {
+            grid-column: auto;
+          }
+
+          .lc-card-preview {
+            width: 100%;
           }
         }
       `}</style>
