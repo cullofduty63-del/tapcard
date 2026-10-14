@@ -1,6 +1,6 @@
 "use client";
 
-import "./globals.css";
+import ".app/global.css";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
