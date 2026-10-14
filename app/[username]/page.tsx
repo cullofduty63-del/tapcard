@@ -111,36 +111,40 @@ website2: "وب‌سایت دوم",
 };
 
 function safeHref(raw: string): string {
-const value = raw.trim();
+  const value = raw.trim();
 
-if (!value || /^(javascript|data|vbscript):/i.test(value)) {
-return "";
-}
+  if (!value) return "";
 
-if (/^https?:///i.test(value)) {
-try {
-const parsed = new URL(value);
+  const lower = value.toLowerCase();
 
- 
-  return parsed.protocol === "https:" || parsed.protocol === "http:"
-    ? parsed.href
-    : "";
-} catch {
-  return "";
-}
- 
+  if (
+    lower.startsWith("javascript:") ||
+    lower.startsWith("data:") ||
+    lower.startsWith("vbscript:")
+  ) {
+    return "";
+  }
 
-}
+  try {
+    const input =
+      lower.startsWith("https://") || lower.startsWith("http://")
+        ? value
+        : "https://" + value;
 
-if (/^[\w.-]+.[a-z]{2,}(/.*)?$/i.test(value)) {
-return `https://${value}`;
-}
+    const parsed = new URL(input);
 
-return "";
-}
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return "";
+    }
 
-function validColor(value: string | undefined, fallback: string): string {
-return value && /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
+    if (!parsed.hostname.includes(".")) {
+      return "";
+    }
+
+    return parsed.href;
+  } catch {
+    return "";
+  }
 }
 
 function hasAccess(profile: Profile): boolean {
