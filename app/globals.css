@@ -77,3 +77,16 @@ nav{height:82px;display:flex;align-items:center;justify-content:space-between;ga
 .pbox footer{margin-top:30px;font-weight:900;direction:ltr;font-size:20px}
 @media(max-width:800px){nav{height:72px;padding:0 18px}.hero{grid-template-columns:1fr;gap:42px;margin:20px auto 70px;padding:20px}.hero h1{font-size:clamp(58px,13vw,78px)}.hero p{font-size:16px}.card{max-width:410px}.features,.grid{grid-template-columns:1fr;padding-left:20px;padding-right:20px}.features{margin-bottom:60px}.adminHead{align-items:flex-start;gap:15px;flex-direction:column;margin-top:30px;padding:0 20px}.adminHead h1{font-size:34px}.box{padding:30px 23px}.auth:before{inset:10px}.modalBox{padding:22px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+/* LumoCard profile editor: ready backgrounds and image uploads */
+.lum-upload-card{display:flex;align-items:center;gap:15px;padding:15px;margin:12px 0 18px;border:1px solid #38234f;border-radius:16px;background:linear-gradient(135deg,#100b1d,#080811)}
+.lum-upload-preview{width:76px;height:76px;flex:0 0 76px;border:2px solid #a855f7;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#1a1030;color:#d8b4fe;font-size:30px}
+.lum-upload-preview img{width:100%;height:100%;object-fit:cover}
+.lum-upload-actions{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.lum-upload-actions strong{font-size:14px;color:#fff}.lum-upload-actions small{font-size:11px;color:#aaa0bf}
+.lum-upload-actions button{font-size:12px;cursor:pointer}.lum-upload-actions button:disabled{opacity:.6;cursor:wait}
+.lum-ready-backgrounds{margin:18px 0}.lum-field-title{display:block;color:inherit;font-size:13px;margin-bottom:10px}
+.lum-ready-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.lum-ready-item{padding:5px;border:1px solid #342343;border-radius:11px;background:#0b0913;color:#d9d0e8;cursor:pointer;min-width:0}
+.lum-ready-item>span{display:block;height:50px;border-radius:7px}.lum-ready-item small{display:block;font-size:10px;padding:6px 0 2px}.lum-ready-item.active{border-color:#c084fc;box-shadow:0 0 0 1px #9333ea,0 0 18px #9333ea2b}
+.lum-bg-upload-preview{width:94px;height:70px;flex:0 0 94px;border:1px solid #6d28d9;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:27px}
+@media(max-width:540px){.lum-ready-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lum-upload-card{align-items:flex-start}.lum-upload-preview{width:60px;height:60px;flex-basis:60px}.lum-bg-upload-preview{width:70px;flex-basis:70px}}
