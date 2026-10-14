@@ -12,13 +12,10 @@ type Appearance = {
   backgroundImage?: string;
   backgroundPreset?: string;
   radius?: number;
-
-  // پشتیبانی از تنظیمات نسخه‌های قبلی
   backgroundMode?: "solid" | "gradient" | "texture";
   backgroundColor?: string;
   backgroundColor2?: string;
   texture?: string;
-
   textColor?: string;
   buttonColor?: string;
   iconColor?: string;
@@ -37,7 +34,6 @@ type CustomLink = {
 };
 
 type Profile = {
-  id?: string;
   username: string;
   full_name: string;
   job?: string;
@@ -102,7 +98,6 @@ const labels: Record<string, string> = {
   youtubechannel: "YouTube Channel",
   linkedincompany: "LinkedIn Company",
   whatsappbusiness: "WhatsApp Business",
-  email: "Email",
   phone: "Phone",
   sms: "SMS",
   maps: "Google Maps",
@@ -118,27 +113,19 @@ const labels: Record<string, string> = {
 function safeHref(raw: string): string {
   const value = raw.trim();
 
-  if (!value) return "";
-
-  if (/^(javascript|data|vbscript):/i.test(value)) {
+  if (!value || /^(javascript|data|vbscript):/i.test(value)) {
     return "";
   }
 
   if (/^https?:\/\//i.test(value)) {
     try {
       const parsed = new URL(value);
-
-      if (
-        parsed.protocol === "https:" ||
-        parsed.protocol === "http:"
-      ) {
-        return parsed.href;
-      }
+      return parsed.protocol === "https:" || parsed.protocol === "http:"
+        ? parsed.href
+        : "";
     } catch {
       return "";
     }
-
-    return "";
   }
 
   if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(value)) {
@@ -175,9 +162,7 @@ function hasAccess(profile: Profile): boolean {
     profile.subscription_status === "trial" &&
     profile.trial_started_at
   ) {
-    const startedAt = new Date(
-      profile.trial_started_at
-    ).getTime();
+    const startedAt = new Date(profile.trial_started_at).getTime();
 
     if (
       Number.isFinite(startedAt) &&
@@ -193,44 +178,34 @@ function hasAccess(profile: Profile): boolean {
 
 function getCardBackground(appearance: Appearance): string {
   const backgroundType =
-    appearance.backgroundType ||
-    appearance.backgroundMode ||
-    "solid";
+    appearance.backgroundType || appearance.backgroundMode || "solid";
 
   const first = validColor(
-    appearance.background ||
-      appearance.backgroundColor,
+    appearance.background || appearance.backgroundColor,
     "#10071f"
   );
 
   const second = validColor(
-    appearance.gradientEnd ||
-      appearance.backgroundColor2,
+    appearance.gradientEnd || appearance.backgroundColor2,
     "#28133e"
   );
 
   const gradientStart = validColor(
-    appearance.gradientStart ||
-      appearance.backgroundColor,
+    appearance.gradientStart || appearance.backgroundColor,
     first
   );
 
   const gradientEnd = validColor(
-    appearance.gradientEnd ||
-      appearance.backgroundColor2,
+    appearance.gradientEnd || appearance.backgroundColor2,
     second
   );
 
   if (backgroundType === "image") {
-    const raw = appearance.backgroundImage || "";
+    const imageUrl = safeHref(appearance.backgroundImage || "");
 
-    const imageUrl = safeHref(raw);
-
-    if (imageUrl) {
-      return `linear-gradient(#0004,#0007),url("${imageUrl}") center/cover`;
-    }
-
-    return first;
+    return imageUrl
+      ? `linear-gradient(#0004,#0007),url("${imageUrl}") center/cover`
+      : first;
   }
 
   if (backgroundType === "gradient") {
@@ -239,9 +214,7 @@ function getCardBackground(appearance: Appearance): string {
 
   if (backgroundType === "texture") {
     const texture =
-      appearance.backgroundPreset ||
-      appearance.texture ||
-      "galaxy";
+      appearance.backgroundPreset || appearance.texture || "galaxy";
 
     switch (texture) {
       case "marble":
@@ -317,22 +290,14 @@ function getCardBackground(appearance: Appearance): string {
         `;
 
       case "noise":
-        return `
-          repeating-linear-gradient(45deg, ${first}, ${first} 3px, ${second} 4px, ${first} 6px)
-        `;
+        return `repeating-linear-gradient(45deg, ${first}, ${first} 3px, ${second} 4px, ${first} 6px)`;
 
       default:
-        return `
-          radial-gradient(ellipse at top, ${second}, ${first} 75%)
-        `;
+        return `radial-gradient(ellipse at top, ${second}, ${first} 75%)`;
     }
   }
 
-  return validColor(
-    appearance.background ||
-      appearance.backgroundColor,
-    "#10071f"
-  );
+  return first;
 }
 
 function normalizePhone(value: string): string {
@@ -347,13 +312,10 @@ export default async function PublicCard({
   const { username } = await params;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !key) {
-    throw new Error(
-      "Missing public Supabase environment variables"
-    );
+    throw new Error("Missing public Supabase environment variables");
   }
 
   const client = createClient(url, key, {
@@ -392,7 +354,42 @@ export default async function PublicCard({
     notFound();
   }
 
-  const profile = data as Profile;
+  // اعتبارسنجی فیلدهای لازم به‌جای تبدیل مستقیم نوع Supabase
+  if (
+    typeof data.username !== "string" ||
+    typeof data.full_name !== "string"
+  ) {
+    notFound();
+  }
+
+  const profile: Profile = {
+    username: data.username,
+    full_name: data.full_name,
+    job: data.job ?? undefined,
+    bio: data.bio ?? undefined,
+    phone: data.phone ?? undefined,
+    website: data.website ?? undefined,
+    location: data.location ?? undefined,
+    avatar_url: data.avatar_url ?? undefined,
+    social_links:
+      data.social_links &&
+      typeof data.social_links === "object" &&
+      !Array.isArray(data.social_links)
+        ? (data.social_links as Record<string, unknown>)
+        : {},
+    appearance:
+      data.appearance &&
+      typeof data.appearance === "object" &&
+      !Array.isArray(data.appearance)
+        ? (data.appearance as Appearance)
+        : {},
+    trial_started_at: data.trial_started_at ?? null,
+    subscription_started_at: data.subscription_started_at ?? null,
+    subscription_expires_at: data.subscription_expires_at ?? null,
+    subscription_status: data.subscription_status ?? undefined,
+    subscription_plan: data.subscription_plan ?? undefined,
+    is_unlimited: data.is_unlimited ?? false,
+  };
 
   if (!hasAccess(profile)) {
     notFound();
@@ -400,28 +397,11 @@ export default async function PublicCard({
 
   const appearance = profile.appearance || {};
 
-  const accent = validColor(
-    appearance.accent,
-    "#c084fc"
-  );
-
-  const textColor = validColor(
-    appearance.textColor,
-    "#ffffff"
-  );
-
-  const buttonColor = validColor(
-    appearance.buttonColor,
-    "#252538"
-  );
-
-  const iconColor = validColor(
-    appearance.iconColor,
-    accent
-  );
-
+  const accent = validColor(appearance.accent, "#c084fc");
+  const textColor = validColor(appearance.textColor, "#ffffff");
+  const buttonColor = validColor(appearance.buttonColor, "#252538");
+  const iconColor = validColor(appearance.iconColor, accent);
   const cardBackground = getCardBackground(appearance);
-
   const socialLinks = profile.social_links || {};
 
   const phones = Array.isArray(socialLinks.phones)
@@ -438,34 +418,23 @@ export default async function PublicCard({
       )
     : [];
 
-const links = Object.entries(socialLinks)
-  .filter(
-    ([key]) =>
-      key !== "phones" &&
-      key !== "customLinks" &&
-      key !== "email"
-  )
-
+  // ایمیل از لینک‌های عمومی حذف شده است.
+  const links = Object.entries(socialLinks)
+    .filter(
+      ([key]) =>
+        key !== "phones" &&
+        key !== "customLinks" &&
+        key !== "email"
+    )
     .map(([key, value]) => {
       let href = "";
 
       if (typeof value === "string") {
-        if (key === "email") {
-          const email = value.trim();
-
-          if (
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-          ) {
-            href = `mailto:${email}`;
-          }
-        } else if (key === "phone" || key === "sms") {
+        if (key === "phone" || key === "sms") {
           const number = normalizePhone(value);
 
           if (number) {
-            href =
-              key === "sms"
-                ? `sms:${number}`
-                : `tel:${number}`;
+            href = key === "sms" ? `sms:${number}` : `tel:${number}`;
           }
         } else {
           href = safeHref(value);
@@ -525,10 +494,7 @@ const links = Object.entries(socialLinks)
 
         <div
           className="public-avatar"
-          style={{
-            borderColor: accent,
-            color: accent,
-          }}
+          style={{ borderColor: accent, color: accent }}
         >
           {profile.avatar_url ? (
             <img
@@ -544,18 +510,12 @@ const links = Object.entries(socialLinks)
 
         <h1>{profile.full_name || profile.username}</h1>
 
-        {profile.job && (
-          <p className="public-job">{profile.job}</p>
-        )}
+        {profile.job && <p className="public-job">{profile.job}</p>}
 
-        {profile.bio && (
-          <p className="public-bio">{profile.bio}</p>
-        )}
+        {profile.bio && <p className="public-bio">{profile.bio}</p>}
 
         {profile.location && (
-          <p className="muted">
-            ⌖ {profile.location}
-          </p>
+          <p className="muted">⌖ {profile.location}</p>
         )}
 
         {phones.length > 0 ? (
@@ -566,9 +526,7 @@ const links = Object.entries(socialLinks)
                 className="social-link"
                 href={`tel:${normalizePhone(phone.number || "")}`}
               >
-                <span>
-                  📞 {phone.title || "شماره تماس"}
-                </span>
+                <span>📞 {phone.title || "شماره تماس"}</span>
                 <span className="contact-value" dir="ltr">
                   {phone.number}
                 </span>
@@ -587,27 +545,13 @@ const links = Object.entries(socialLinks)
           </a>
         ) : null}
 
-        {profile.email && (
-          <a
-            className="social-link"
-            href={`mailto:${profile.email}`}
-          >
-            ✉️ ارسال ایمیل
-            <span className="arrow">↗</span>
-          </a>
-        )}
-
         <div className="social-list">
           {links.map((link) => (
             <a
               className="social-link"
               key={link.key}
               href={link.url}
-              target={
-                link.url.startsWith("http")
-                  ? "_blank"
-                  : undefined
-              }
+              target={link.url.startsWith("http") ? "_blank" : undefined}
               rel={
                 link.url.startsWith("http")
                   ? "noopener noreferrer"
@@ -615,10 +559,7 @@ const links = Object.entries(socialLinks)
               }
             >
               <span>{link.label}</span>
-              <span
-                className="arrow"
-                style={{ color: iconColor }}
-              >
+              <span className="arrow" style={{ color: iconColor }}>
                 ↗
               </span>
             </a>
@@ -638,10 +579,7 @@ const links = Object.entries(socialLinks)
                 rel="noopener noreferrer"
               >
                 <span>🔗 {item.title}</span>
-                <span
-                  className="arrow"
-                  style={{ color: iconColor }}
-                >
+                <span className="arrow" style={{ color: iconColor }}>
                   ↗
                 </span>
               </a>
