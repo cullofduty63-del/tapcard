@@ -6,6 +6,11 @@ import { createClient } from "@supabase/supabase-js";
 type PhoneItem = { id?: string; title?: string; number: string };
 type CustomLink = { id?: string; title: string; url: string };
 type Profile = {
+  subscription_status?: string | null;
+  subscription_plan?: string | null;
+  subscription_expires_at?: string | null;
+  is_unlimited?: boolean | null;
+  trial_started_at?: string | null;
   username: string;
   full_name: string;
   job?: string | null;
