@@ -124,15 +124,19 @@ const { error: profileError } = await admin
     username,
     full_name,
     email,
-    job: job || null,
+    job: job || "",
     bio: "",
     social_links: {},
     appearance: {
       template,
-      accent: "#8b20ff",
+      animation: "float",
+      textColor: "#ffffff",
+      accentColor: "#8b20ff",
+      backgroundType: "gradient",
+      backgroundColor: "#09090f",
+      backgroundEndColor: "#251044",
+      backgroundImage: "",
     },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   });
 
 if (profileError) {
