@@ -1271,7 +1271,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <form className="lc-inline-form" onSubmit={addPhone}>
+                 <div className="lc-inline-form">
                     <label className="lc-field">
                       <span>عنوان شماره</span>
                       <input
@@ -1294,7 +1294,7 @@ export default function DashboardPage() {
                     <button className="lc-add-button" type="submit">
                       + افزودن شماره
                     </button>
-                  </form>
+                  </div>
 
                   <div className="lc-list">
                     {phones.length === 0 ? (
