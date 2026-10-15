@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import ContactActions from "./contact-actions";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
