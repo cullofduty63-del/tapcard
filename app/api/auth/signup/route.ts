@@ -4,186 +4,172 @@ import { createClient } from "@supabase/supabase-js";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-let createdUserId: string | null = null;
+  try {
+    const formData = await request.formData();
 
-try {
-const formData = await request.formData();
+    const full_name = String(formData.get("full_name") ?? "").trim();
+    const username = String(formData.get("username") ?? "")
+      .trim()
+      .toLowerCase();
+    const password = String(formData.get("password") ?? "");
+    const job = String(formData.get("job") ?? "").trim();
+    const template = String(formData.get("template") ?? "personal");
 
+    if (
+      full_name.length < 2 ||
+      !/^[a-z0-9_-]{3,24}$/.test(username) ||
+      password.length < 8
+    ) {
+      return NextResponse.json(
+        { error: "نام، نام کاربری یا رمز عبور معتبر نیست." },
+        { status: 400 }
+      );
+    }
 
-const full_name = String(formData.get("full_name") ?? "").trim();
-const username = String(formData.get("username") ?? "")
-  .trim()
-  .toLowerCase();
-const password = String(formData.get("password") ?? "");
-const job = String(formData.get("job") ?? "").trim();
-const template = String(formData.get("template") ?? "personal");
+    const allowedTemplates = [
+      "personal",
+      "business",
+      "designer",
+      "developer",
+      "creator",
+      "shop",
+      "cafe",
+    ];
 
-if (
-  full_name.length < 2 ||
-  !/^[a-z0-9_-]{3,24}$/.test(username) ||
-  password.length < 8
-) {
-  return NextResponse.json(
-    { error: "نام، نام کاربری یا رمز عبور معتبر نیست." },
-    { status: 400 }
-  );
-}
+    if (!allowedTemplates.includes(template)) {
+      return NextResponse.json(
+        { error: "قالب انتخاب‌شده معتبر نیست." },
+        { status: 400 }
+      );
+    }
 
-const allowedTemplates = [
-  "personal",
-  "business",
-  "designer",
-  "developer",
-  "creator",
-  "shop",
-  "cafe",
-];
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const secret =
+      process.env.SUPABASE_SECRET_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!allowedTemplates.includes(template)) {
-  return NextResponse.json(
-    { error: "قالب انتخاب‌شده معتبر نیست." },
-    { status: 400 }
-  );
-}
+    if (!url || !secret) {
+      console.error("SIGNUP CONFIG ERROR: Missing Supabase URL or server secret");
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const secret =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY;
+      return NextResponse.json(
+        { error: "تنظیمات سمت سرور Supabase کامل نیست." },
+        { status: 500 }
+      );
+    }
 
-if (!url || !secret) {
-  console.error("SIGNUP CONFIG ERROR: Missing Supabase URL or server secret");
+    const admin = createClient(url, secret, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
 
-  return NextResponse.json(
-    { error: "تنظیمات سمت سرور Supabase کامل نیست." },
-    { status: 500 }
-  );
-}
+    const { data: existing, error: lookupError } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
 
-const admin = createClient(url, secret, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-  },
-});
+    if (lookupError) {
+      console.error("SIGNUP PROFILE LOOKUP ERROR:", lookupError.message);
 
-const { data: existing, error: lookupError } = await admin
-  .from("profiles")
-  .select("id")
-  .eq("username", username)
-  .maybeSingle();
+      return NextResponse.json(
+        { error: "بررسی نام کاربری ناموفق بود." },
+        { status: 500 }
+      );
+    }
 
-if (lookupError) {
-  console.error("SIGNUP PROFILE LOOKUP ERROR:", lookupError.message);
+    if (existing) {
+      return NextResponse.json(
+        { error: "این نام کاربری قبلاً گرفته شده است." },
+        { status: 409 }
+      );
+    }
 
-  return NextResponse.json(
-    { error: "بررسی نام کاربری ناموفق بود." },
-    { status: 500 }
-  );
-}
+    const email = `${username}@accounts.lumocard.ir`;
 
-if (existing) {
-  return NextResponse.json(
-    { error: "این نام کاربری قبلاً گرفته شده است." },
-    { status: 409 }
-  );
-}
+    const { data: authData, error: authError } =
+      await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name,
+          username,
+        },
+      });
 
-const email = `${username}@accounts.lumocard.ir`;
+    if (authError || !authData.user) {
+      console.error("SIGNUP AUTH ERROR:", authError?.message);
 
-const { data: authData, error: authError } =
-  await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      full_name,
-      username,
-    },
-  });
+      return NextResponse.json(
+        {
+          error: authError?.message || "ساخت حساب کاربری ناموفق بود.",
+        },
+        { status: 400 }
+      );
+    }
 
-if (authError || !authData.user) {
-  console.error("SIGNUP AUTH ERROR:", authError?.message);
+    const createdUserId = authData.user.id;
 
-  return NextResponse.json(
-    {
-      error:
-        authError?.message || "ساخت حساب کاربری ناموفق بود.",
-    },
-    { status: 400 }
-  );
-}
+    // تریگر Supabase پروفایل را ساخته است؛ اینجا فقط آن را تکمیل می‌کنیم.
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .update({
+        full_name,
+        username,
+        email,
+        job,
+        bio: "",
+        social_links: {},
+        appearance: {
+          template,
+          animation: "float",
+          textColor: "#ffffff",
+          accentColor: "#8b20ff",
+          backgroundType: "gradient",
+          backgroundColor: "#09090f",
+          backgroundEndColor: "#251044",
+          backgroundImage: "",
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", createdUserId)
+      .select("id")
+      .maybeSingle();
 
-createdUserId = authData.user.id;
+    if (profileError || !profile) {
+      console.error("SIGNUP PROFILE UPDATE ERROR:", {
+        message: profileError?.message,
+        code: profileError?.code,
+        details: profileError?.details,
+        hint: profileError?.hint,
+        profileFound: Boolean(profile),
+      });
 
-const { error: profileError } = await admin
-  .from("profiles")
-  .insert({
-    id: createdUserId,
-    username,
-    full_name,
-    email,
-    job: job || "",
-    bio: "",
-    social_links: {},
-    appearance: {
-      template,
-      animation: "float",
-      textColor: "#ffffff",
-      accentColor: "#8b20ff",
-      backgroundType: "gradient",
-      backgroundColor: "#09090f",
-      backgroundEndColor: "#251044",
-      backgroundImage: "",
-    },
-  });
+      return NextResponse.json(
+        { error: "حساب ساخته شد، اما تکمیل پروفایل ناموفق بود." },
+        { status: 500 }
+      );
+    }
 
-if (profileError) {
-  console.error("SIGNUP PROFILE INSERT ERROR:", {
-    message: profileError.message,
-    code: profileError.code,
-    details: profileError.details,
-    hint: profileError.hint,
-  });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "حساب و پروفایل با موفقیت ساخته شدند.",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error(
+      "SIGNUP UNEXPECTED ERROR:",
+      error instanceof Error ? error.message : error
+    );
 
-  const { error: cleanupError } =
-    await admin.auth.admin.deleteUser(createdUserId);
-
-  if (cleanupError) {
-    console.error("SIGNUP CLEANUP ERROR:", cleanupError.message);
+    return NextResponse.json(
+      { error: "درخواست ثبت‌نام نامعتبر است." },
+      { status: 400 }
+    );
   }
-
-  return NextResponse.json(
-    {
-      error:
-        "ساخت پروفایل ناموفق بود. لطفاً لاگ سرور را بررسی کن.",
-    },
-    { status: 500 }
-  );
-}
-
-return NextResponse.json(
-  {
-    success: true,
-    message: "حساب و پروفایل با موفقیت ساخته شدند.",
-  },
-  { status: 201 }
-);
-
-
-} catch (error) {
-console.error(
-"SIGNUP UNEXPECTED ERROR:",
-error instanceof Error ? error.message : error
-);
-
-
-return NextResponse.json(
-  { error: "درخواست ثبت‌نام نامعتبر است." },
-  { status: 400 }
-);
-
-
-}
 }
