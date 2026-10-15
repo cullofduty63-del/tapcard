@@ -113,16 +113,101 @@ export default async function PublicCard({
 
   const { data, error } = await client
     .from("profiles")
-    .select(
-      "username,full_name,job,bio,phone,website,location,avatar_url,social_links,appearance",
-    )
-    .eq("username", username.toLowerCase())
-    .maybeSingle();
+  .select(
+  "username,full_name,job,bio,phone,website,location,avatar_url,social_links,appearance,subscription_status,subscription_plan,subscription_expires_at,is_unlimited,trial_started_at",
+)
+.eq("username", username.toLowerCase())
+.maybeSingle();
 
-  if (error || !data) notFound();
+if (error || !data) notFound();
 
-  const p = data as Profile;
-  const socialLinks = p.social_links || {};
+const profile = data as Profile;
+
+const isUnlimited =
+  profile.is_unlimited === true ||
+  profile.subscription_plan === "unlimited";
+
+const now = Date.now();
+
+const isAnnualActive =
+  profile.subscription_status === "active" &&
+  profile.subscription_plan === "annual" &&
+  !!profile.subscription_expires_at &&
+  new Date(profile.subscription_expires_at).getTime() > now;
+
+const trialStart = profile.trial_started_at
+  ? new Date(profile.trial_started_at).getTime()
+  : NaN;
+
+const isTrialActive =
+  profile.subscription_status === "trial" &&
+  Number.isFinite(trialStart) &&
+  trialStart <= now &&
+  now - trialStart < 48 * 60 * 60 * 1000;
+
+const isSubscriptionActive =
+  isUnlimited || isAnnualActive || isTrialActive;
+
+if (!isSubscriptionActive) {
+  return (
+    <main
+      dir="rtl"
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "24px",
+        background: "#08080d",
+        color: "#f5f3ff",
+      }}
+    >
+      <section
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+          boxSizing: "border-box",
+          textAlign: "center",
+          padding: "36px 24px",
+          borderRadius: "24px",
+          border: "1px solid #633c83",
+          background: "#111015",
+          boxShadow: "0 20px 70px #0008",
+        }}
+      >
+        <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+          🔒
+        </div>
+
+        <h1 style={{ fontSize: "24px", marginBottom: "12px" }}>
+          این کارت موقتاً غیرفعال است
+        </h1>
+
+        <p style={{ color: "#c4b5fd", lineHeight: 2 }}>
+          اشتراک این کارت به پایان رسیده است.
+          برای فعال‌شدن دوباره، با صاحب کارت تماس بگیرید.
+        </p>
+
+        <a
+          href="/"
+          style={{
+            display: "inline-block",
+            marginTop: "18px",
+            padding: "12px 20px",
+            borderRadius: "12px",
+            background: "#7c3aed",
+            color: "#fff",
+            textDecoration: "none",
+          }}
+        >
+          بازگشت به LumoCard
+        </a>
+      </section>
+    </main>
+  );
+}
+
+const p = profile;
+const socialLinks = p.social_links || {};
   const phones: PhoneItem[] = Array.isArray(socialLinks.phones)
     ? socialLinks.phones.filter(
         (item: any) =>
