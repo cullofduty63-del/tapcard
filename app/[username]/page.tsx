@@ -84,12 +84,21 @@ const TEXTURES: Record<string, string> = {
 
 function safeHref(raw: string) {
   const value = raw.trim();
+
   if (/^(https?:\/\/|mailto:|tel:|sms:)/i.test(value)) return value;
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
+
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return `mailto:${value}`;
+  }
+
   if (/^\+?[0-9()\-\s]{7,}$/.test(value)) {
     return `tel:${value.replace(/[^\d+]/g, "")}`;
   }
-  if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(value)) return `https://${value}`;
+
+  if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(value)) {
+    return `https://${value}`;
+  }
+
   return "";
 }
 
@@ -103,10 +112,13 @@ export default async function PublicCard({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!url || !key) throw new Error("Missing public Supabase environment variables");
+  if (!url || !key) {
+    throw new Error("Missing public Supabase environment variables");
+  }
 
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -114,109 +126,113 @@ export default async function PublicCard({
 
   const { data, error } = await client
     .from("profiles")
-  .select(
-  "username,full_name,job,bio,phone,website,location,avatar_url,social_links,appearance,subscription_status,subscription_plan,subscription_expires_at,is_unlimited,trial_started_at",
-)
-.eq("username", username.toLowerCase())
-.maybeSingle();
+    .select(
+      "username,full_name,job,bio,phone,website,location,avatar_url,social_links,appearance,subscription_status,subscription_plan,subscription_expires_at,is_unlimited,trial_started_at",
+    )
+    .eq("username", username.toLowerCase())
+    .maybeSingle();
 
-if (error || !data) notFound();
+  if (error || !data) notFound();
 
-const profile = data as Profile;
+  const profile = data as Profile;
 
-const isUnlimited =
-  profile.is_unlimited === true ||
-  profile.subscription_plan === "unlimited";
+  const isUnlimited =
+    profile.is_unlimited === true ||
+    profile.subscription_plan === "unlimited";
 
-const now = Date.now();
+  const now = Date.now();
 
-const isAnnualActive =
-  profile.subscription_status === "active" &&
-  profile.subscription_plan === "annual" &&
-  !!profile.subscription_expires_at &&
-  new Date(profile.subscription_expires_at).getTime() > now;
+  const isAnnualActive =
+    profile.subscription_status === "active" &&
+    profile.subscription_plan === "annual" &&
+    !!profile.subscription_expires_at &&
+    new Date(profile.subscription_expires_at).getTime() > now;
 
-const trialStart = profile.trial_started_at
-  ? new Date(profile.trial_started_at).getTime()
-  : NaN;
+  const trialStart = profile.trial_started_at
+    ? new Date(profile.trial_started_at).getTime()
+    : NaN;
 
-const isTrialActive =
-  profile.subscription_status === "trial" &&
-  Number.isFinite(trialStart) &&
-  trialStart <= now &&
-  now - trialStart < 48 * 60 * 60 * 1000;
+  const isTrialActive =
+    profile.subscription_status === "trial" &&
+    Number.isFinite(trialStart) &&
+    trialStart <= now &&
+    now - trialStart < 48 * 60 * 60 * 1000;
 
-const isSubscriptionActive =
-  isUnlimited || isAnnualActive || isTrialActive;
+  const isSubscriptionActive =
+    isUnlimited || isAnnualActive || isTrialActive;
 
-if (!isSubscriptionActive) {
-  return (
-    <main
-      dir="rtl"
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        padding: "24px",
-        background: "#08080d",
-        color: "#f5f3ff",
-      }}
-    >
-      <section
+  if (!isSubscriptionActive) {
+    return (
+      <main
+        dir="rtl"
         style={{
-          width: "100%",
-          maxWidth: "420px",
-          boxSizing: "border-box",
-          textAlign: "center",
-          padding: "36px 24px",
-          borderRadius: "24px",
-          border: "1px solid #633c83",
-          background: "#111015",
-          boxShadow: "0 20px 70px #0008",
+          minHeight: "100vh",
+          display: "grid",
+          placeItems: "center",
+          padding: "24px",
+          background: "#08080d",
+          color: "#f5f3ff",
         }}
       >
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>
-          🔒
-        </div>
-
-        <h1 style={{ fontSize: "24px", marginBottom: "12px" }}>
-          این کارت موقتاً غیرفعال است
-        </h1>
-
-        <p style={{ color: "#c4b5fd", lineHeight: 2 }}>
-          اشتراک این کارت به پایان رسیده است.
-          برای فعال‌شدن دوباره، به ادمین جهت تمدید اعلام کنید.
-        </p>
-
-        <a
-          href="/"
+        <section
           style={{
-            display: "inline-block",
-            marginTop: "18px",
-            padding: "12px 20px",
-            borderRadius: "12px",
-            background: "#7c3aed",
-            color: "#fff",
-            textDecoration: "none",
+            width: "100%",
+            maxWidth: "420px",
+            boxSizing: "border-box",
+            textAlign: "center",
+            padding: "36px 24px",
+            borderRadius: "24px",
+            border: "1px solid #633c83",
+            background: "#111015",
+            boxShadow: "0 20px 70px #0008",
           }}
         >
-          بازگشت به LumoCard
-        </a>
-      </section>
-    </main>
-  );
-}
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+            🔒
+          </div>
 
-const p = profile;
-const socialLinks = p.social_links || {};
+          <h1 style={{ fontSize: "24px", marginBottom: "12px" }}>
+            این کارت موقتاً غیرفعال است
+          </h1>
+
+          <p style={{ color: "#c4b5fd", lineHeight: 2 }}>
+            اشتراک این کارت به پایان رسیده است. برای فعال‌شدن دوباره،
+            به ادمین جهت تمدید اعلام کنید.
+          </p>
+
+          <a
+            href="/"
+            style={{
+              display: "inline-block",
+              marginTop: "18px",
+              padding: "12px 20px",
+              borderRadius: "12px",
+              background: "#7c3aed",
+              color: "#fff",
+              textDecoration: "none",
+            }}
+          >
+            بازگشت به LumoCard
+          </a>
+        </section>
+      </main>
+    );
+  }
+
+  const p = profile;
+  const socialLinks = p.social_links || {};
+
   const phones: PhoneItem[] = Array.isArray(socialLinks.phones)
     ? socialLinks.phones.filter(
         (item: any) =>
-          item && typeof item.number === "string" && item.number.trim(),
+          item &&
+          typeof item.number === "string" &&
+          item.number.trim(),
       )
     : p.phone
       ? [{ title: "تماس با من", number: p.phone }]
       : [];
+
   const customLinks: CustomLink[] = Array.isArray(socialLinks.customLinks)
     ? socialLinks.customLinks.filter(
         (item: any) =>
@@ -302,6 +318,7 @@ const socialLinks = p.social_links || {};
   };
 
   const selectedTheme = theme[template] || theme.personal;
+
   const backgroundType =
     appearance.backgroundType ||
     (appearance.backgroundMode === "texture"
@@ -309,21 +326,33 @@ const socialLinks = p.social_links || {};
       : appearance.backgroundMode === "image"
         ? "image"
         : "gradient");
-  const backgroundColor = appearance.background || appearance.backgroundColor || "#10101A";
+
+  const backgroundColor =
+    appearance.background || appearance.backgroundColor || "#10101A";
+
   const gradientStart =
     appearance.gradientStart || appearance.backgroundColor || "#17172B";
+
   const gradientEnd =
     appearance.gradientEnd || appearance.backgroundColor2 || "#43216D";
-  const backgroundPreset = appearance.backgroundPreset || appearance.texture || "galaxy";
+
+  const backgroundPreset =
+    appearance.backgroundPreset || appearance.texture || "galaxy";
 
   let cardBackground = selectedTheme.card;
-  if (backgroundType === "solid") cardBackground = backgroundColor;
+
+  if (backgroundType === "solid") {
+    cardBackground = backgroundColor;
+  }
+
   if (backgroundType === "gradient") {
     cardBackground = `linear-gradient(135deg,${gradientStart},${gradientEnd})`;
   }
+
   if (backgroundType === "texture") {
     cardBackground = TEXTURES[backgroundPreset] || TEXTURES.galaxy;
   }
+
   if (backgroundType === "image" && appearance.backgroundImage) {
     cardBackground = `linear-gradient(135deg,rgba(0,0,0,.28),rgba(0,0,0,.58)),url("${appearance.backgroundImage}") center/cover`;
   }
@@ -367,6 +396,7 @@ const socialLinks = p.social_links || {};
         </div>
 
         <h1>{p.full_name || p.username}</h1>
+
         {p.job && <p className="public-job">{p.job}</p>}
         {p.bio && <p className="public-bio">{p.bio}</p>}
         {p.location && <p className="muted">⌖ {p.location}</p>}
@@ -389,8 +419,16 @@ const socialLinks = p.social_links || {};
               className="social-link"
               key={link.key}
               href={link.url}
-              target={/^(tel:|mailto:|sms:)/i.test(link.url) ? undefined : "_blank"}
-              rel={/^(tel:|mailto:|sms:)/i.test(link.url) ? undefined : "noopener noreferrer"}
+              target={
+                /^(tel:|mailto:|sms:)/i.test(link.url)
+                  ? undefined
+                  : "_blank"
+              }
+              rel={
+                /^(tel:|mailto:|sms:)/i.test(link.url)
+                  ? undefined
+                  : "noopener noreferrer"
+              }
               style={{ borderColor: `${accent}66` }}
             >
               <span>{link.label}</span>
@@ -401,13 +439,20 @@ const socialLinks = p.social_links || {};
           {customLinks.map((link, index) => {
             const href = safeHref(link.url);
             if (!href) return null;
+
             return (
               <a
                 className="social-link"
                 key={link.id || `${link.title}-${index}`}
                 href={href}
-                target={/^(tel:|mailto:|sms:)/i.test(href) ? undefined : "_blank"}
-                rel={/^(tel:|mailto:|sms:)/i.test(href) ? undefined : "noopener noreferrer"}
+                target={
+                  /^(tel:|mailto:|sms:)/i.test(href) ? undefined : "_blank"
+                }
+                rel={
+                  /^(tel:|mailto:|sms:)/i.test(href)
+                    ? undefined
+                    : "noopener noreferrer"
+                }
                 style={{ borderColor: `${accent}66` }}
               >
                 <span>↗ {link.title}</span>
@@ -416,6 +461,23 @@ const socialLinks = p.social_links || {};
             );
           })}
         </div>
+
+        <ContactActions
+          fullName={p.full_name || p.username}
+          username={p.username}
+          job={p.job}
+          phone={phones[0]?.number || p.phone}
+          email={
+            typeof socialLinks.email === "string"
+              ? socialLinks.email
+              : null
+          }
+          website={p.website}
+          location={p.location}
+          accent={accent}
+          textColor={textColor}
+          buttonColor={buttonColor}
+        />
 
         <p className="powered">
           Made with <span style={{ color: accent }}>ϟ LumoCard</span>
