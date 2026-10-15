@@ -2,115 +2,103 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+try {
+const formData = await request.formData();
 
-    const username =
-      typeof body.username === "string"
-        ? body.username.trim().toLowerCase()
-        : "";
 
-    const password =
-      typeof body.password === "string" ? body.password : "";
+const full_name = String(formData.get("full_name") ?? "").trim();
+const username = String(formData.get("username") ?? "").trim().toLowerCase();
+const password = String(formData.get("password") ?? "");
+const job = String(formData.get("job") ?? "").trim();
+const template = String(formData.get("template") ?? "personal");
 
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: "نام کاربری و رمز عبور را وارد کن." },
-        { status: 400 }
-      );
-    }
+if (
+  full_name.length < 2 ||
+  username.length < 3 ||
+  username.length > 24 ||
+  !/^[a-z0-9_-]+$/.test(username) ||
+  password.length < 8
+) {
+  return NextResponse.json(
+    { error: "اطلاعات واردشده معتبر نیست." },
+    { status: 400 }
+  );
+}
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-    
-    if (!url || !serviceKey || !publicKey) {
-      console.error("LOGIN_ENV_CHECK", {
-        hasUrl: Boolean(url),
-        hasServiceKey: Boolean(serviceKey),
-        hasPublicKey: Boolean(publicKey),
-      });
+if (!url || !key) {
+  return NextResponse.json(
+    { error: "تنظیمات Supabase کامل نیست." },
+    { status: 500 }
+  );
+}
 
-      return NextResponse.json(
-        { error: "تنظیمات سرور ناقص است. لاگ Cloudflare را بررسی کن." },
-        { status: 500 }
-      );
-    }
+const supabase = createClient(url, key);
 
-    const admin = createClient(url, serviceKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+// جلوگیری از خطا هنگام انتخاب نام کاربری تکراری
+const { data: existingUser, error: checkError } = await supabase
+  .from("profiles")
+  .select("id")
+  .eq("username", username)
+  .maybeSingle();
 
-    const { data: profile, error: profileError } = await admin
-      .from("profiles")
-      .select("email")
-      .eq("username", username)
-      .maybeSingle();
+if (checkError) {
+  return NextResponse.json(
+    { error: "بررسی نام کاربری ناموفق بود. دوباره تلاش کن." },
+    { status: 500 }
+  );
+}
 
-    if (profileError) {
-      console.error("LOGIN_PROFILE_LOOKUP_ERROR", {
-        message: profileError.message,
-        code: profileError.code,
-      });
+if (existingUser) {
+  return NextResponse.json(
+    { error: "این نام کاربری قبلاً گرفته شده؛ یکی دیگه انتخاب کن." },
+    { status: 409 }
+  );
+}
 
-      return NextResponse.json(
-        { error: "خطا در بررسی حساب کاربری. لاگ Cloudflare را بررسی کن." },
-        { status: 500 }
-      );
-    }
+// ایمیل داخلی؛ کاربر نیازی به وارد کردن ایمیل ندارد
+const internalEmail = `${username}@accounts.lumocard.ir`;
 
-    if (!profile?.email) {
-      return NextResponse.json(
-        { error: "نام کاربری یا رمز عبور اشتباه است." },
-        { status: 401 }
-      );
-    }
+const { data, error } = await supabase.auth.signUp({
+  email: internalEmail,
+  password,
+  options: {
+    data: {
+      full_name,
+      username,
+      job,
+      template,
+    },
+  },
+});
 
-    const authClient = createClient(url, publicKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+if (error) {
+  return NextResponse.json(
+    { error: error.message },
+    { status: 400 }
+  );
+}
 
-    const { data, error } = await authClient.auth.signInWithPassword({
-      email: profile.email,
-      password,
-    });
+if (!data.user) {
+  return NextResponse.json(
+    { error: "حساب کاربری ساخته نشد." },
+    { status: 500 }
+  );
+}
 
-    if (error || !data.session) {
-      // رمز عبور یا جزئیات حساس را در لاگ ثبت نکن
-      console.error("LOGIN_AUTH_FAILED", {
-        hasError: Boolean(error),
-        errorStatus: error?.status ?? null,
-      });
+return NextResponse.redirect(
+  new URL("/login?registered=1", request.url),
+  303
+);
 
-      return NextResponse.json(
-        { error: "نام کاربری یا رمز عبور اشتباه است." },
-        { status: 401 }
-      );
-    }
 
-    return NextResponse.json({
-      session: {
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      },
-    });
-  } catch (error) {
-    console.error("LOGIN_ROUTE_EXCEPTION", {
-      message:
-        error instanceof Error ? error.message : "Unknown error",
-      name: error instanceof Error ? error.name : "UnknownError",
-    });
-
-    return NextResponse.json(
-      { error: "خطای داخلی هنگام ورود. لاگ Cloudflare را بررسی کن." },
-      { status: 500 }
-    );
-  }
+} catch (error) {
+console.error("SIGNUP_ROUTE_ERROR", error);
+return NextResponse.json(
+{ error: "در ثبت‌نام خطایی رخ داد. لاگ Cloudflare را بررسی کن." },
+{ status: 500 }
+);
+}
 }
