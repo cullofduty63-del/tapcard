@@ -26,11 +26,12 @@ export async function POST(request: Request) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+    
     if (!url || !serviceKey || !publicKey) {
-      console.error("Login configuration missing", {
-        url: Boolean(url),
-        serviceKey: Boolean(serviceKey),
-        publicKey: Boolean(publicKey),
+      console.error("LOGIN_ENV_CHECK", {
+        hasUrl: Boolean(url),
+        hasServiceKey: Boolean(serviceKey),
+        hasPublicKey: Boolean(publicKey),
       });
 
       return NextResponse.json(
@@ -53,13 +54,13 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (profileError) {
-      console.error("Login profile lookup failed", {
+      console.error("LOGIN_PROFILE_LOOKUP_ERROR", {
         message: profileError.message,
         code: profileError.code,
       });
 
       return NextResponse.json(
-        { error: "خطا در بررسی حساب کاربری؛ لاگ Cloudflare را بررسی کن." },
+        { error: "خطا در بررسی حساب کاربری. لاگ Cloudflare را بررسی کن." },
         { status: 500 }
       );
     }
@@ -84,6 +85,12 @@ export async function POST(request: Request) {
     });
 
     if (error || !data.session) {
+      // رمز عبور یا جزئیات حساس را در لاگ ثبت نکن
+      console.error("LOGIN_AUTH_FAILED", {
+        hasError: Boolean(error),
+        errorStatus: error?.status ?? null,
+      });
+
       return NextResponse.json(
         { error: "نام کاربری یا رمز عبور اشتباه است." },
         { status: 401 }
@@ -97,13 +104,14 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error(
-      "Login route failed:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
+    console.error("LOGIN_ROUTE_EXCEPTION", {
+      message:
+        error instanceof Error ? error.message : "Unknown error",
+      name: error instanceof Error ? error.name : "UnknownError",
+    });
 
     return NextResponse.json(
-      { error: "خطای داخلی هنگام ورود؛ لاگ Cloudflare را بررسی کن." },
+      { error: "خطای داخلی هنگام ورود. لاگ Cloudflare را بررسی کن." },
       { status: 500 }
     );
   }
