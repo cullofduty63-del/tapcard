@@ -6,56 +6,56 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { username, password } = body;
 
-    if (
-      typeof username !== "string" ||
-      typeof password !== "string" ||
-      !username.trim() ||
-      !password
-    ) {
+    const username =
+      typeof body?.username === "string"
+        ? body.username.trim().toLowerCase()
+        : "";
+
+    const password =
+      typeof body?.password === "string" ? body.password : "";
+
+    if (!username || !password) {
       return NextResponse.json(
         { error: "نام کاربری و رمز عبور را وارد کن." },
         { status: 400 }
       );
     }
 
-    const normalizedUsername = username.trim().toLowerCase();
-
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const service =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SECRET_KEY;
+    const secret =
+      process.env.SUPABASE_SECRET_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
     const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-    if (!url || !service || !publicKey) {
+    if (!url || !secret || !publicKey) {
+      console.error("LOGIN CONFIG: Missing Supabase environment variables");
+
       return NextResponse.json(
         { error: "تنظیمات Supabase در Cloudflare کامل نیست." },
         { status: 500 }
       );
     }
 
-    const admin = createClient(url, service, {
+    const admin = createClient(url, secret, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
+        detectSessionInUrl: false,
       },
     });
 
-    const {
-      data: profile,
-      error: profileError,
-    } = await admin
+    const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("email, username")
-      .eq("username", normalizedUsername)
+      .select("email")
+      .eq("username", username)
       .maybeSingle();
 
     if (profileError) {
       console.error("LOGIN PROFILE ERROR:", profileError.message);
 
       return NextResponse.json(
-        { error: "بررسی حساب ناموفق بود. دوباره تلاش کن." },
+        { error: "بررسی حساب ناموفق بود." },
         { status: 500 }
       );
     }
@@ -67,14 +67,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = createClient(url, publicKey, {
+    const authClient = createClient(url, publicKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
+        detectSessionInUrl: false,
       },
     });
 
-    const { data, error } = await client.auth.signInWithPassword({
+    const { data, error } = await authClient.auth.signInWithPassword({
       email: profile.email,
       password,
     });
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
     }
 
     if (!data.session) {
-      console.error("LOGIN ERROR: No session returned");
+      console.error("LOGIN SESSION ERROR: Session was not returned");
 
       return NextResponse.json(
         { error: "ورود انجام نشد. دوباره تلاش کن." },
@@ -103,7 +104,12 @@ export async function POST(req: Request) {
         refresh_token: data.session.refresh_token,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error(
+      "LOGIN UNEXPECTED:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+
     return NextResponse.json(
       { error: "درخواست ورود نامعتبر است." },
       { status: 400 }
