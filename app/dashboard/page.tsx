@@ -267,6 +267,16 @@ const TEXTURES = [
     name: "سایبرپانک",
     css: "linear-gradient(rgba(217,70,239,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.08) 1px,transparent 1px),linear-gradient(135deg,#10051D,#090F22)",
   },
+  {
+    id: "crystal",
+    name: "کریستالی",
+    css: "radial-gradient(ellipse at 15% 15%,rgba(165,243,252,.3),transparent 38%),linear-gradient(135deg,transparent 45%,rgba(255,255,255,.08) 46% 47%,transparent 48%),linear-gradient(45deg,transparent 55%,rgba(165,243,252,.1) 56% 57%,transparent 58%),linear-gradient(135deg,#071827,#164e63)",
+  },
+  {
+    id: "neon",
+    name: "نئون",
+    css: "radial-gradient(ellipse at 20% 20%,rgba(217,70,239,.35),transparent 40%),radial-gradient(ellipse at 85% 80%,rgba(34,211,238,.25),transparent 40%),linear-gradient(135deg,#090014,#160b2c)",
+  },
 ];
 
 function createId() {
@@ -444,11 +454,13 @@ function getAppHref(appId: string, value: string): string {
 export default function DashboardPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const backgroundFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBackground, setUploadingBackground] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -764,6 +776,71 @@ export default function DashboardPage() {
       );
     } finally {
       setUploadingAvatar(false);
+    }
+  }
+
+  async function uploadBackground(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !profile) return;
+
+    setError("");
+    setMessage("");
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/avif",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("فرمت تصویر باید JPG، PNG، WEBP یا AVIF باشد.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("حجم تصویر پس‌زمینه نباید بیشتر از ۵ مگابایت باشد.");
+      return;
+    }
+
+    setUploadingBackground(true);
+
+    try {
+      const safeName = file.name
+        .replace(/[^a-zA-Z0-9._-]/g, "-")
+        .slice(-80);
+      const path = `${profile.id}/background-${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-images")
+        .upload(path, file, {
+          cacheControl: "3600",
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabase.storage
+        .from("profile-images")
+        .getPublicUrl(path);
+
+      setAppearance((current) => ({
+        ...current,
+        backgroundType: "image",
+        backgroundImage: publicData.publicUrl,
+      }));
+
+      setMessage("تصویر پس‌زمینه بارگذاری شد؛ برای ثبت روی کارت، ذخیره تغییرات را بزن.");
+    } catch (err: any) {
+      setError(
+        err?.message ||
+          "آپلود تصویر انجام نشد. تنظیمات Storage و دسترسی‌های Supabase را بررسی کن.",
+      );
+    } finally {
+      setUploadingBackground(false);
     }
   }
 
@@ -1671,8 +1748,50 @@ export default function DashboardPage() {
                   {appearance.backgroundType === "image" && (
                     <div className="lc-design-section">
                       <h3>تصویر پس‌زمینه</h3>
-                      <label className="lc-field">
-                        <span>آدرس مستقیم تصویر</span>
+                      <p className="lc-hint">
+                        از دستگاهت عکس انتخاب کن یا آدرس مستقیم تصویر را وارد کن.
+                        فرمت‌های JPG، PNG، WEBP و AVIF تا حجم ۵ مگابایت پشتیبانی می‌شوند.
+                      </p>
+
+                      <input
+                        ref={backgroundFileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        onChange={uploadBackground}
+                        hidden
+                      />
+
+                      <button
+                        type="button"
+                        className="lc-secondary-button"
+                        disabled={uploadingBackground}
+                        onClick={() => backgroundFileInputRef.current?.click()}
+                      >
+                        {uploadingBackground
+                          ? "در حال آپلود تصویر..."
+                          : "↑ آپلود تصویر از دستگاه"}
+                      </button>
+
+                      {appearance.backgroundImage && (
+                        <div className="lc-background-image-preview">
+                          <img
+                            src={appearance.backgroundImage}
+                            alt="پیش‌نمایش پس‌زمینه"
+                          />
+                          <button
+                            type="button"
+                            className="lc-delete-button"
+                            onClick={() =>
+                              updateAppearance("backgroundImage", "")
+                            }
+                          >
+                            حذف تصویر
+                          </button>
+                        </div>
+                      )}
+
+                      <label className="lc-field" style={{ marginTop: 14 }}>
+                        <span>یا آدرس مستقیم تصویر</span>
                         <input
                           value={appearance.backgroundImage}
                           onChange={(event) =>
@@ -1685,10 +1804,6 @@ export default function DashboardPage() {
                           dir="ltr"
                         />
                       </label>
-                      <p className="lc-hint">
-                        آدرس باید مستقیم به یک تصویر قابل مشاهده در وب اشاره
-                        کند.
-                      </p>
                     </div>
                   )}
 
@@ -3059,6 +3174,25 @@ export default function DashboardPage() {
           border-radius: 50%;
           background: #4ade80;
           box-shadow: 0 0 9px #4ade80;
+        }
+
+        .lc-background-image-preview {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: 14px;
+          padding: 10px;
+          border: 1px solid #34283f;
+          border-radius: 12px;
+          background: #15111c;
+        }
+
+        .lc-background-image-preview img {
+          width: 90px;
+          height: 64px;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 1px solid #ffffff20;
         }
 
         .lc-preview-stage {
