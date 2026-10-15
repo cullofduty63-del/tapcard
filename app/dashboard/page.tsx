@@ -1291,7 +1291,7 @@ export default function DashboardPage() {
                       />
                     </label>
 
-                    <button className="lc-add-button" type="submit">
+                    <button className="lc-add-button" type="button" onClick={() => addPhone({ preventDefault: () => {} } as FormEvent<HTMLFormElement>)}>
                       + افزودن شماره
                     </button>
                   </div>
