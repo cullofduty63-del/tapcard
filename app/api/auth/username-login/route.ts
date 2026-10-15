@@ -15,9 +15,9 @@ export async function POST(req: Request) {
     const password =
       typeof body?.password === "string" ? body.password : "";
 
-    if (!username || !password) {
+    if (!/^[a-z0-9_-]{3,24}$/.test(username) || !password) {
       return NextResponse.json(
-        { error: "نام کاربری و رمز عبور را وارد کن." },
+        { error: "نام کاربری یا رمز عبور اشتباه است." },
         { status: 400 }
       );
     }
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("email")
+      .select("id, email, username")
       .eq("username", username)
       .maybeSingle();
 
@@ -60,9 +60,25 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!profile?.email) {
+    if (!profile?.id) {
       return NextResponse.json(
         { error: "نام کاربری یا رمز عبور اشتباه است." },
+        { status: 401 }
+      );
+    }
+
+    // ایمیل اصلی حساب را از Auth می‌گیریم تا به مقدار profiles وابسته نباشیم.
+    const { data: authUser, error: authUserError } =
+      await admin.auth.admin.getUserById(profile.id);
+
+    if (authUserError || !authUser.user?.email) {
+      console.error(
+        "LOGIN AUTH USER ERROR:",
+        authUserError?.message || "User or email not found"
+      );
+
+      return NextResponse.json(
+        { error: "حساب کاربری پیدا نشد یا ایمیل آن معتبر نیست." },
         { status: 401 }
       );
     }
@@ -76,24 +92,15 @@ export async function POST(req: Request) {
     });
 
     const { data, error } = await authClient.auth.signInWithPassword({
-      email: profile.email,
+      email: authUser.user.email,
       password,
     });
 
-    if (error) {
-      console.error("LOGIN AUTH ERROR:", error.message);
+    if (error || !data.session) {
+      console.error("LOGIN AUTH ERROR:", error?.message || "No session");
 
       return NextResponse.json(
         { error: "نام کاربری یا رمز عبور اشتباه است." },
-        { status: 401 }
-      );
-    }
-
-    if (!data.session) {
-      console.error("LOGIN SESSION ERROR: Session was not returned");
-
-      return NextResponse.json(
-        { error: "ورود انجام نشد. دوباره تلاش کن." },
         { status: 401 }
       );
     }
