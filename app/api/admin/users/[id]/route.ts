@@ -53,6 +53,14 @@ export async function POST(
     }
 
     const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "شناسه کاربر معتبر نیست." },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     const action = body.action;
 
@@ -65,7 +73,7 @@ export async function POST(
 
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("id, subscription_expires_at")
+      .select("id, subscription_expires_at, is_unlimited")
       .eq("id", id)
       .maybeSingle();
 
@@ -92,7 +100,9 @@ export async function POST(
         : null;
 
       const startDate =
-        currentExpiry && currentExpiry.getTime() > now.getTime()
+        currentExpiry &&
+        Number.isFinite(currentExpiry.getTime()) &&
+        currentExpiry.getTime() > now.getTime()
           ? currentExpiry
           : now;
 
@@ -102,6 +112,72 @@ export async function POST(
       updates = {
         subscription_status: "active",
         subscription_plan: "annual",
+        subscription_started_at: now.toISOString(),
+        subscription_expires_at: expiry.toISOString(),
+        is_unlimited: false,
+      };
+    } else if (action === "custom_duration") {
+      const years = Number(body.years ?? 0);
+      const months = Number(body.months ?? 0);
+      const days = Number(body.days ?? 0);
+      const hours = Number(body.hours ?? 0);
+      const minutes = Number(body.minutes ?? 0);
+
+      const values = [years, months, days, hours, minutes];
+
+      if (
+        values.some(
+          (value) =>
+            !Number.isSafeInteger(value) ||
+            value < 0
+        ) ||
+        values.every((value) => value === 0)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "مدت اشتراک نامعتبر است؛ حداقل یکی از واحدهای زمان را بیشتر از صفر وارد کن.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        years > 100 ||
+        months > 1200 ||
+        days > 36500 ||
+        hours > 876000 ||
+        minutes > 52560000
+      ) {
+        return NextResponse.json(
+          { error: "مدت اشتراک بیش از حد مجاز است." },
+          { status: 400 }
+        );
+      }
+
+      const currentExpiry = profile.subscription_expires_at
+        ? new Date(profile.subscription_expires_at)
+        : null;
+
+      const startDate =
+        !profile.is_unlimited &&
+        currentExpiry &&
+        Number.isFinite(currentExpiry.getTime()) &&
+        currentExpiry.getTime() > now.getTime()
+          ? currentExpiry
+          : now;
+
+      const expiry = new Date(startDate);
+
+      expiry.setFullYear(expiry.getFullYear() + years);
+      expiry.setMonth(expiry.getMonth() + months);
+      expiry.setDate(expiry.getDate() + days);
+      expiry.setHours(expiry.getHours() + hours);
+      expiry.setMinutes(expiry.getMinutes() + minutes);
+
+      updates = {
+        subscription_status: "active",
+        subscription_plan: "custom",
         subscription_started_at: now.toISOString(),
         subscription_expires_at: expiry.toISOString(),
         is_unlimited: false,
@@ -134,6 +210,8 @@ export async function POST(
       .eq("id", id);
 
     if (updateError) {
+      console.error("Subscription update failed:", updateError);
+
       return NextResponse.json(
         { error: "ذخیره تغییرات ناموفق بود." },
         { status: 500 }
@@ -143,8 +221,11 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: "تغییرات با موفقیت ذخیره شد.",
+      expiresAt: updates.subscription_expires_at,
     });
-  } catch {
+  } catch (error) {
+    console.error("Admin subscription API error:", error);
+
     return NextResponse.json(
       { error: "خطای داخلی سرور." },
       { status: 500 }
