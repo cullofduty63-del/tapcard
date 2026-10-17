@@ -160,6 +160,22 @@ const APPS: AppItem[] = [
   { id: "booking", name: "Booking", category: "business", placeholder: "لینک رزرو یا نوبت‌دهی" },
 ];
 
+const APP_ICONS: Record<string, string> = {
+  instagram: "📸", telegram: "✈️", whatsapp: "💬", whatsapp_business: "🟢",
+  youtube: "▶️", youtube_channel: "▶️", tiktok: "♪", x: "𝕏", facebook: "f",
+  threads: "＠", snapchat: "👻", discord: "🎮", twitch: "🟣", reddit: "👽",
+  pinterest: "📌", linkedin: "in", linkedin_company: "in", github: "⌘",
+  behance: "Bē", dribbble: "🏀", spotify: "🎵", soundcloud: "☁️", medium: "M",
+  tumblr: "t", aparat: "▶", rubika: "R", eitaa: "E", bale: "B", soroush: "S",
+  virasty: "V", igap: "iG", gap: "G", digikala: "🛍️", torob: "🔎", basalam: "🧺",
+  divar: "▰", sheypoor: "S", snapp: "🚕", tapsi: "🚕", digistyle: "👕",
+  filimo: "🎬", namava: "🎬", filmnet: "🎞️", taaghche: "📚", fidibo: "📖",
+  website: "🌐", email: "✉️", phone: "☎", sms: "✉", maps: "📍", calendly: "📅",
+  linktree: "🌳", beacons: "✦", notion: "N", portfolio: "▧", telegram_channel: "✈️",
+  telegram_group: "👥", whatsapp_channel: "💬", threads_profile: "＠", vimeo: "V",
+  producthunt: "P", stackoverflow: "⌘", gitlab: "🦊", telegram_bot: "🤖", booking: "📅",
+};
+
 const CATEGORIES = [
   { id: "all", name: "همه" },
   { id: "social", name: "شبکه اجتماعی" },
@@ -1458,8 +1474,8 @@ export default function DashboardPage() {
                           }`}
                         >
                           <span className="lc-app-field-top">
-                            <span className="lc-app-dot">
-                              {app.name.charAt(0)}
+                            <span className={`lc-app-dot lc-app-icon-${app.id}`} aria-hidden="true">
+                              {APP_ICONS[app.id] || app.name.charAt(0)}
                             </span>
                             <span className="lc-app-name">{app.name}</span>
                             {isFilled && <span className="lc-app-check">✓</span>}

@@ -52,3 +52,38 @@
 .button,.social-link,.url-box,.template-box{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease}
 .button:hover{box-shadow:0 12px 32px rgba(124,32,255,.25)}
 @media(prefers-reduced-motion:reduce){.landing .nav,.landing .hero>.container>*,.landing .features .feature,.landing .cta,.dashboard-header,.dashboard-header+*,.section-card,.panel,.lc-avatar-editor,.lc-app-toolbar,.lc-app-grid,.lc-card-preview,.lc-profile-preview,.lc-card-shell,.lc-card-visual,.showcase-card{animation:none!important;transition:none!important}}
+
+/* LumoCard refreshed interface: clearer hierarchy, app-icon tiles, subtle motion */
+@keyframes lumo-enter {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lumo-orbit {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.landing{overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#1c102b 0%,#09090f 46%)}
+.landing .nav{border-bottom:1px solid #ffffff0c}
+.landing .hero{padding-top:76px}
+.landing .preview-card{transition:transform .35s ease,border-color .35s ease,box-shadow .35s ease}
+.landing .preview-card:hover{transform:translateY(-6px) rotateX(1deg);border-color:#c084fc99;box-shadow:0 35px 100px #7926bd30}
+.landing .feature{backdrop-filter:blur(14px);background:linear-gradient(145deg,#17141fdd,#0d0c13dd);transition:transform .28s ease,border-color .28s ease,background .28s ease}
+.landing .feature:hover{transform:translateY(-6px);background:linear-gradient(145deg,#21162d,#100e17)}
+.landing .section-heading,.landing .feature,.landing .cta{animation:lumo-enter .65s both}
+.landing .feature:nth-child(2){animation-delay:.08s}.landing .feature:nth-child(3){animation-delay:.16s}
+.landing .button{border-radius:14px}
+.landing .button:focus-visible,.landing a:focus-visible{outline:2px solid #d8b4fe;outline-offset:4px}
+.lc-dashboard{background:radial-gradient(ellipse at 75% 0%,#171024 0%,#09090f 48%)!important}
+.lc-sidebar{background:rgba(14,13,20,.88)!important;backdrop-filter:blur(16px);border-left-color:#ffffff10!important}
+.lc-logo-mark{box-shadow:0 8px 24px #a855f733;animation:lumo-orbit 5s ease-in-out infinite}
+.lc-main{animation:lumo-enter .45s ease both}
+.lc-dashboard .lc-section,.lc-dashboard .lc-panel,.lc-dashboard .section-card{border-color:#ffffff12!important;box-shadow:0 12px 40px #00000016;transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease}
+.lc-dashboard .lc-section:hover,.lc-dashboard .lc-panel:hover{border-color:#c084fc40!important}
+.lc-app-grid{gap:12px!important}
+.lc-app-field{position:relative;overflow:hidden;padding:13px!important;border-radius:15px!important;border-color:#ffffff12!important;background:linear-gradient(145deg,#17151f,#100f16)!important;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease!important;animation:lumo-enter .45s both}
+.lc-app-field:hover{transform:translateY(-3px);border-color:#c084fc66!important;box-shadow:0 12px 26px #0003}
+.lc-app-field.is-filled{border-color:#8b5cf655!important;background:linear-gradient(145deg,#21182b,#121019)!important}
+.lc-app-dot{width:34px!important;height:34px!important;border-radius:11px!important;background:linear-gradient(145deg,#30203f,#211a2c)!important;border:1px solid #ffffff10;font-size:16px!important;box-shadow:inset 0 1px #ffffff0d}
+.lc-app-name{font-size:12px!important;font-weight:800!important;color:#f1eaf9!important}
+.lc-app-field input{height:39px!important;border-radius:10px!important;background:#0b0a10!important;font-size:11px!important;border-color:#ffffff12!important;transition:border-color .2s,box-shadow .2s!important}
+.lc-app-field input:focus{border-color:#b66cff!important;box-shadow:0 0 0 3px #a855f71c}
+.lc-app-check{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#123222;color:#86efac!important}
+.lc-dashboard button,.lc-dashboard a{transition:transform .2s ease,border-color .2s ease,filter .2s ease}
+.lc-dashboard button:hover{filter:brightness(1.08)}
+.lc-dashboard button:focus-visible,.lc-dashboard a:focus-visible,.lc-dashboard input:focus-visible{outline:2px solid #c084fc;outline-offset:3px}
+@media(max-width:700px){.landing .hero{padding-top:48px}.lc-app-grid{grid-template-columns:1fr!important}.lc-app-field:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.landing *, .lc-dashboard *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
