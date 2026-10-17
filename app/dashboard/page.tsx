@@ -678,8 +678,7 @@ export default function DashboardPage() {
     setPhones((current) => current.filter((item) => item.id !== id));
   }
 
-  function addCustomLink(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function addCustomLink() {
 
     if (!customTitle.trim() || !customUrl.trim()) {
       setError("عنوان و آدرس لینک را کامل وارد کن.");
@@ -1504,7 +1503,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <form className="lc-inline-form" onSubmit={addCustomLink}>
+                  <div className="lc-inline-form">
                     <label className="lc-field">
                       <span>عنوان لینک</span>
                       <input
@@ -1526,10 +1525,10 @@ export default function DashboardPage() {
                       />
                     </label>
 
-                    <button className="lc-add-button" type="submit">
+                    <button className="lc-add-button" type="button" onClick={addCustomLink}>
                       + افزودن لینک
                     </button>
-                  </form>
+                  </div>
 
                   <div className="lc-list">
                     {customLinks.length === 0 ? (

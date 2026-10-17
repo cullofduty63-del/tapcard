@@ -1,0 +1,7 @@
+LumoCard profile save fix
+
+1) In Supabase Dashboard, open SQL Editor and run supabase/profile-save-fix.sql.
+2) Deploy this project version after checking your existing environment variables are still configured.
+3) The dashboard's custom-link form was nested inside the main profile form. It is now a div/button, avoiding invalid nested HTML forms that can cause mobile browsers to submit the wrong form.
+
+Important: the SQL adds missing fields and owner read/update policies only. Existing policies with other names are left in place. If save still fails, copy the exact error shown on the page; do not share service-role secrets.
