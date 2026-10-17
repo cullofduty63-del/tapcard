@@ -26,3 +26,29 @@
 .landing .brand span{background:linear-gradient(90deg,#d2a1ff,#fff,#a855f7,#d2a1ff);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:lc-shimmer 7s linear infinite}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(max-width:700px){.landing .showcase-card{animation-duration:8s}.landing .feature:hover{transform:none}}
+
+/* LumoCard motion system: homepage + dashboard + physical-card preview */
+@keyframes lc-page-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lc-card-hover{0%,100%{transform:translateY(0) rotateX(0deg)}50%{transform:translateY(-5px) rotateX(1deg)}}
+@keyframes lc-blue-glow{0%,100%{box-shadow:0 18px 48px rgba(75,91,168,.20),0 0 0 rgba(75,91,168,0)}50%{box-shadow:0 24px 62px rgba(75,91,168,.38),0 0 28px rgba(75,91,168,.15)}}
+@keyframes lc-border-flow{0%,100%{border-color:rgba(192,132,252,.18)}50%{border-color:rgba(192,132,252,.55)}}
+.landing .nav,.landing .hero>.container>*{animation:lc-page-enter .7s both;}
+.landing .hero>.container>*:nth-child(2){animation-delay:.08s}.landing .hero>.container>*:nth-child(3){animation-delay:.16s}.landing .hero>.container>*:nth-child(4){animation-delay:.24s}
+.landing .features .feature{animation:lc-page-enter .65s both;transition:transform .28s,border-color .28s,box-shadow .28s}
+.landing .features .feature:nth-child(2){animation-delay:.09s}.landing .features .feature:nth-child(3){animation-delay:.18s}
+.landing .cta{animation:lc-page-enter .7s both;animation-delay:.12s;transition:transform .25s,border-color .25s}
+.landing .cta:hover{transform:translateY(-3px);border-color:#a855f766}
+.dashboard-header,.dashboard-header+*,.section-card,.panel,.lc-avatar-editor,.lc-app-toolbar,.lc-app-grid{animation:lc-page-enter .55s both}
+.section-card{transition:transform .24s,border-color .24s,box-shadow .24s}
+.section-card:hover{border-color:#a855f755;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+.lc-card-preview,.lc-profile-preview,.lc-card-shell,.lc-card-visual{transform-origin:center;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;animation:lc-card-hover 6s ease-in-out infinite}
+.lc-card-preview:hover,.lc-profile-preview:hover,.lc-card-shell:hover,.lc-card-visual:hover{transform:translateY(-5px) rotateY(-2deg) scale(1.012)}
+/* Keep the blue physical-card art crisp and preserve its full design. */
+.showcase-card{overflow:hidden;background:#303957;animation:lc-blue-glow 5s ease-in-out infinite}
+.showcase-card img{width:100%;height:100%;display:block;object-fit:contain;object-position:center;background:#303957}
+.showcase-dot{transition:transform .2s,border-color .2s,background .2s}
+.showcase-dot:hover{transform:translateY(-2px)}
+.showcase-dot[aria-pressed="true"]{box-shadow:0 0 0 3px rgba(192,132,252,.12)}
+.button,.social-link,.url-box,.template-box{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease}
+.button:hover{box-shadow:0 12px 32px rgba(124,32,255,.25)}
+@media(prefers-reduced-motion:reduce){.landing .nav,.landing .hero>.container>*,.landing .features .feature,.landing .cta,.dashboard-header,.dashboard-header+*,.section-card,.panel,.lc-avatar-editor,.lc-app-toolbar,.lc-app-grid,.lc-card-preview,.lc-profile-preview,.lc-card-shell,.lc-card-visual,.showcase-card{animation:none!important;transition:none!important}}
