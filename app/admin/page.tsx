@@ -19,6 +19,26 @@ type Profile = {
 
 type Action = "activate_annual" | "unlimited" | "expire";
 
+type CardOrder = {
+  id: string;
+  user_id: string;
+  requested_color: string;
+  phone_number: string;
+  status: "pending" | "approved" | "rejected" | "activated";
+  assigned_color?: string | null;
+  physical_card_number?: string | null;
+  created_at: string;
+  customer?: { username?: string; full_name?: string; email?: string } | null;
+};
+
+const CARD_COLORS = [
+  { value: "#4B5BA8", label: "آبی" },
+  { value: "#111111", label: "مشکی" },
+  { value: "#7416A6", label: "بنفش" },
+  { value: "#888888", label: "خاکستری" },
+  { value: "#7A2B20", label: "زرشکی" },
+];
+
 type Duration = {
   years: number;
   months: number;
@@ -65,6 +85,11 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [authorized, setAuthorized] = useState(false);
   const [workingId, setWorkingId] = useState("");
+  const [cardOrders, setCardOrders] = useState<CardOrder[]>([]);
+  const [cardOrderEdits, setCardOrderEdits] = useState<Record<string, { color: string; number: string }>>({});
+  const [cardOrdersError, setCardOrdersError] = useState("");
+  const [cardOrdersNotice, setCardOrdersNotice] = useState("");
+  const [workingOrderId, setWorkingOrderId] = useState("");
 
   const [durationUser, setDurationUser] = useState<Profile | null>(null);
   const [duration, setDuration] = useState<Duration>(EMPTY_DURATION);
@@ -104,6 +129,24 @@ export default function AdminPage() {
 
       setUsers(result.users || []);
       setAuthorized(true);
+
+      const ordersResponse = await fetch("/api/admin/card-orders", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        cache: "no-store",
+      });
+      const ordersResult = await ordersResponse.json().catch(() => ({}));
+      if (!ordersResponse.ok) {
+        setCardOrdersError(ordersResult.error || "بارگذاری سفارش‌های کارت ناموفق بود.");
+        setCardOrders([]);
+      } else {
+        const loadedOrders: CardOrder[] = ordersResult.orders || [];
+        setCardOrders(loadedOrders);
+        setCardOrderEdits(Object.fromEntries(loadedOrders.map((order) => [order.id, {
+          color: order.assigned_color || order.requested_color || "#111111",
+          number: order.physical_card_number || "",
+        }])));
+        setCardOrdersError("");
+      }
     } catch {
       setAuthorized(false);
       setError("ارتباط با سرور برقرار نشد.");
@@ -161,6 +204,45 @@ export default function AdminPage() {
       setError("ارتباط با سرور برقرار نشد.");
     } finally {
       setWorkingId("");
+    }
+  }
+
+  async function manageCardOrder(order: CardOrder, status: "approved" | "rejected" | "activated") {
+    const edit = cardOrderEdits[order.id] || { color: order.assigned_color || order.requested_color, number: order.physical_card_number || "" };
+    if (status === "activated" && (!edit.number.trim() || edit.number.trim().length < 3)) {
+      setCardOrdersError("برای فعال‌سازی، شناسه کارت فیزیکی را وارد کن.");
+      return;
+    }
+    const label = status === "activated" ? "فعال‌سازی کارت" : status === "approved" ? "تأیید سفارش" : "رد درخواست";
+    if (!window.confirm(`${label} برای ${order.customer?.full_name || order.customer?.username || "این مشتری"} انجام شود؟`)) return;
+
+    setWorkingOrderId(order.id);
+    setCardOrdersError("");
+    setCardOrdersNotice("");
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) throw new Error("نشست ورود معتبر نیست؛ دوباره وارد شو.");
+      const response = await fetch("/api/admin/card-orders", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: order.id,
+          status,
+          assigned_color: edit.color,
+          physical_card_number: edit.number.trim(),
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "ذخیره سفارش ناموفق بود.");
+      setCardOrdersNotice(result.message || "تغییرات سفارش ذخیره شد.");
+      await loadUsers();
+    } catch (e) {
+      setCardOrdersError(e instanceof Error ? e.message : "ارتباط با سرور برقرار نشد.");
+    } finally {
+      setWorkingOrderId("");
     }
   }
 
@@ -748,6 +830,20 @@ export default function AdminPage() {
             padding: 18px;
           }
         }
+        .card-orders { margin-bottom: 24px; }
+        .card-order-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-top:16px; }
+        .card-order { border:1px solid #33283f; background:#111019; border-radius:16px; padding:16px; min-width:0; }
+        .card-order-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+        .card-order-head strong { display:block; overflow-wrap:anywhere; }
+        .card-order-meta { color:#b8adc7; font-size:12px; line-height:1.9; overflow-wrap:anywhere; }
+        .card-order-fields { display:grid; grid-template-columns:1fr; gap:10px; margin:12px 0; }
+        .card-order-fields label { display:grid; gap:6px; color:#d7cce4; font-size:12px; }
+        .card-order-fields input,.card-order-fields select { width:100%; min-width:0; border:1px solid #40334d; background:#09080e; color:#fff; border-radius:10px; padding:10px; }
+        .card-order-actions { display:flex; flex-wrap:wrap; gap:8px; }
+        .card-order-actions .button { flex:1; min-width:100px; }
+        .card-color-dot { display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid #777; vertical-align:middle; margin-left:5px; }
+        .card-order-state { display:inline-flex; border-radius:999px; padding:4px 9px; font-size:11px; background:#281b36; color:#e9d5ff; white-space:nowrap; }
+        @media(max-width:640px) { .card-order-actions .button { min-width:100%; } }
       `}</style>
 
       <div className="container">
@@ -785,6 +881,58 @@ export default function AdminPage() {
                   <div className="stat-value">{stat.value}</div>
                 </div>
               ))}
+            </section>
+
+            <section className="panel card-orders">
+              <div className="panel-header">
+                <div className="panel-title">💳 درخواست خرید کارت فیزیکی</div>
+                <button className="button" onClick={() => void loadUsers()} disabled={loading || Boolean(workingOrderId)}>به‌روزرسانی</button>
+              </div>
+              <p style={{ color: "#b8adc7", lineHeight: 1.9, marginTop: 0 }}>
+                رنگ نهایی و شناسه کارت را تعیین کن؛ بعد از فعال‌سازی، کارت در داشبورد همان مشتری نمایش داده می‌شود.
+              </p>
+              {cardOrdersError && <div className="message error">{cardOrdersError}</div>}
+              {cardOrdersNotice && <div className="message success">{cardOrdersNotice}</div>}
+              {cardOrders.length === 0 ? (
+                <div className="empty">فعلاً درخواست خریدی ثبت نشده است.</div>
+              ) : (
+                <div className="card-order-grid">
+                  {cardOrders.map((order) => {
+                    const edit = cardOrderEdits[order.id] || { color: order.assigned_color || order.requested_color, number: order.physical_card_number || "" };
+                    const busyOrder = workingOrderId === order.id;
+                    const statusLabel = order.status === "pending" ? "در انتظار بررسی" : order.status === "approved" ? "تأیید شده" : order.status === "activated" ? "فعال" : "رد شده";
+                    return (
+                      <article className="card-order" key={order.id}>
+                        <div className="card-order-head">
+                          <div>
+                            <strong>{order.customer?.full_name || "بدون نام"}</strong>
+                            <div className="card-order-meta">@{order.customer?.username || "—"}</div>
+                          </div>
+                          <span className="card-order-state">{statusLabel}</span>
+                        </div>
+                        <div className="card-order-meta">شماره تماس: <b dir="ltr">{order.phone_number}</b></div>
+                        <div className="card-order-meta">رنگ درخواستی: <span className="card-color-dot" style={{ background: order.requested_color }} />{CARD_COLORS.find((item) => item.value === order.requested_color)?.label || order.requested_color}</div>
+                        <div className="card-order-meta">تاریخ درخواست: {formatDate(new Date(order.created_at))}</div>
+                        <div className="card-order-fields">
+                          <label>رنگ نهایی کارت
+                            <select value={edit.color} onChange={(event) => setCardOrderEdits((old) => ({ ...old, [order.id]: { ...edit, color: event.target.value } }))}>
+                              {CARD_COLORS.map((color) => <option key={color.value} value={color.value}>{color.label}</option>)}
+                            </select>
+                          </label>
+                          <label>شناسه کارت فیزیکی
+                            <input value={edit.number} onChange={(event) => setCardOrderEdits((old) => ({ ...old, [order.id]: { ...edit, number: event.target.value } }))} placeholder="مثلاً LUMO-000124" maxLength={60} dir="ltr" />
+                          </label>
+                        </div>
+                        <div className="card-order-actions">
+                          <button className="button" disabled={busyOrder || Boolean(workingOrderId)} onClick={() => void manageCardOrder(order, "approved")}>تأیید سفارش</button>
+                          <button className="button" disabled={busyOrder || Boolean(workingOrderId)} onClick={() => void manageCardOrder(order, "activated")}>فعال‌سازی کارت</button>
+                          <button className="button" disabled={busyOrder || Boolean(workingOrderId)} onClick={() => void manageCardOrder(order, "rejected")}>رد درخواست</button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </section>
 
             <section className="panel">

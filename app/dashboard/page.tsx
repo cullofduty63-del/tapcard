@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import PhysicalCardSection from "./physical-card-section";
 
 type PhoneItem = {
   id: string;
@@ -1056,6 +1057,7 @@ export default function DashboardPage() {
     { id: "apps", label: "اپلیکیشن‌ها", icon: "📱" },
     { id: "links", label: "لینک‌های سفارشی", icon: "🔗" },
     { id: "design", label: "طراحی کارت", icon: "🎨" },
+    { id: "physical-card", label: "خرید کارت فیزیکی", icon: "💳" },
   ];
 
   const filledAppCount = Object.values(appValues).filter(
@@ -1183,6 +1185,7 @@ export default function DashboardPage() {
         <div className="lc-workspace">
           <div className="lc-editor">
             <form onSubmit={saveDashboard}>
+              {activeSection === "physical-card" && <PhysicalCardSection customerName={profile.full_name || profile.username} />}
               {activeSection === "profile" && (
                 <section className="lc-panel">
                   <div className="lc-panel-heading">
