@@ -1119,13 +1119,6 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div className="lc-nav-label">امکانات بیشتر</div>
-        <nav className="lc-nav" aria-label="امکانات بیشتر">
-          <Link href="/apps" className="lc-nav-item"><span>📱</span><span>کتابخانه اپلیکیشن‌ها</span></Link>
-          <Link href="/club" className="lc-nav-item"><span>🏆</span><span>باشگاه مشتریان</span></Link>
-          <Link href="/games" className="lc-nav-item"><span>🎁</span><span>بازی‌های جایزه‌ای</span></Link>
-        </nav>
-
         <div className="lc-sidebar-bottom">
           <a
             className="lc-public-link"
