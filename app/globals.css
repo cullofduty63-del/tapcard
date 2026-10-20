@@ -29,29 +29,30 @@ html,body{min-height:100%;background:#07070c}
 .lc-home-features,.lc-home-download{width:min(100%,980px);margin:0 auto;padding:58px 0}.lc-home-download{text-align:center;border-top:1px solid #ffffff12}.lc-home-download h2{font-size:clamp(24px,4vw,36px);margin:0 0 8px}.lc-home-download>p{color:var(--muted);margin:0 0 20px}.lc-home-profile .footer{width:100%;margin:0 auto;border-top:1px solid #ffffff12}
 @media(max-width:650px){.lc-profile-links{grid-template-columns:1fr}.lc-public-card{padding:26px 18px!important}.lc-profile-link{padding:13px!important}.lc-home-header{height:70px}.lc-home-hero{padding:50px 0;min-height:auto}.lc-home-features,.lc-home-download{padding:42px 0}.lc-home-profile{padding:0 18px}}
 
-/* LUMOCARD MONOCHROME THEME — preserves existing components and behavior */
-:root{--bg:#080808;--panel:#111111;--text:#f7f7f7;--muted:#a5a5a5;--line:#303030;--purple:#e8e8e8;--purple2:#ffffff}
-body{background:#080808;color:#f7f7f7}
-.brand span,.eyebrow,.feature-number,.preview-url,.under-form a,.text-link,.url-box a,.public-job,.back-home{color:#f5f5f5!important}
-.button{background:linear-gradient(115deg,#f2f2f2,#cfcfcf)!important;color:#090909!important;border-color:#fff!important;box-shadow:0 7px 30px #ffffff12!important}
-.button-ghost{background:#ffffff06!important;color:#f7f7f7!important;border-color:#383838!important;box-shadow:none!important}
-.gradient-text{background:linear-gradient(90deg,#fff,#bcbcbc,#f8f8f8)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
-.dot{background:#fff!important;box-shadow:0 0 12px #fff5!important}
-.preview-card,.public-profile{border-color:#393939!important;background:radial-gradient(ellipse at 20% 0%,#242424,#111 55%,#080808)!important}
-.preview-logo{background:#f4f4f4!important;color:#080808!important}
-.avatar-placeholder,.public-avatar{border-color:#e4e4e4!important;background:linear-gradient(140deg,#202020,#555)!important}
-.glow-one,.glow-two{background:#fff!important;opacity:.055!important}
-.feature,.section-card,.app-install-card{border-color:#303030!important;background:linear-gradient(145deg,#171717,#0c0c0c)!important}
-.cta{border-color:#343434!important;background:radial-gradient(ellipse at top,#222,#111 65%)!important}
-.panel{border-color:#303030!important;background:#111!important}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:#eee!important;box-shadow:0 0 0 3px #ffffff12!important}
-.template-option input:checked+.template-box{border-color:#eee!important;background:#ffffff12!important;color:#fff!important}
-.url-box{border-color:#383838!important;background:#171717!important}
-.url-box span{color:#f5f5f5!important}
-.social-link:hover{border-color:#eee!important}
-.access-page{background:radial-gradient(ellipse at top,#202020 0%,#0a0a0a 55%)!important}
-.access-card{border-color:#363636!important;background:#111!important}
-.lc-home-profile{background:radial-gradient(ellipse at 50% 0%,#222 0%,#0b0b0b 38%,#070707 75%)!important}
-.lc-home-avatar{border-color:#eee!important;color:#fff!important;background:linear-gradient(145deg,#252525,#666)!important;box-shadow:0 0 0 10px #ffffff0b,0 0 70px #ffffff10!important}
-.lc-link-icon{background:#ffffff12!important}
-.lc-profile-link{border-color:#303030!important}
+/* LumoCard monochrome design system — screenshot-aligned refinement */
+:root{--bg:#080808;--panel:#111111;--text:#fafafa;--muted:#a3a3a3;--line:#292929;--purple:#d4d4d4;--purple2:#ffffff}
+.brand span,.gradient-text,.text-link,.under-form a,.preview-url,.feature-number,.lc-profile-handle,.lc-link-arrow{color:#e5e5e5!important}
+.button{background:linear-gradient(135deg,#f5f5f5,#bdbdbd)!important;color:#090909!important;border:1px solid #fff!important;box-shadow:0 7px 28px #ffffff12!important}
+.button:hover{filter:brightness(1.06)!important}
+.button-ghost{background:#ffffff06!important;color:#f5f5f5!important;border-color:#414141!important;box-shadow:none!important}
+.eyebrow{color:#d4d4d4!important}.dot{background:#fff!important;box-shadow:0 0 12px #ffffff55!important}
+.hero,.lc-home-profile{background:radial-gradient(ellipse at 50% 0%,#202020 0%,#0b0b0b 42%,#070707 78%)!important}
+.preview-card,.public-profile,.lc-public-card{background:linear-gradient(145deg,#171717,#090909)!important;border-color:#393939!important}
+.preview-logo,.avatar-placeholder,.lc-home-avatar{background:linear-gradient(145deg,#f5f5f5,#777)!important;color:#090909!important;border-color:#f5f5f5!important;box-shadow:0 0 0 8px #ffffff0a,0 0 50px #ffffff12!important}
+.feature,.section-card,.panel,.app-install-card,.access-card{background:linear-gradient(145deg,#151515,#0c0c0c)!important;border-color:#303030!important}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#d4d4d4!important;box-shadow:0 0 0 3px #ffffff12!important}
+.template-option input:checked+.template-box{border-color:#fff!important;background:#ffffff12!important;color:#fff!important}
+.social-link:hover,.lc-profile-link:hover{border-color:#bdbdbd!important}
+.lc-home-social-preview span,.preview-links span,.pill{border-color:#343434!important;background:#ffffff07!important}
+.lc-home-download,.lc-home-profile .footer{border-color:#292929!important}
+/* Keep the existing login mascot and its password-covering animation; only recolor it. */
+.lc-login-page .panel.narrow{border-color:#3a3a3a!important;background:radial-gradient(ellipse at 50% 0%,#202020 0%,#101010 52%)!important;box-shadow:0 24px 80px #0008,0 0 0 1px #ffffff08!important}
+.lc-login-page .panel.narrow:before{background:linear-gradient(90deg,transparent,#fff,transparent)!important}
+.lc-password-mascot{filter:drop-shadow(0 10px 22px #ffffff12)!important}
+.lc-mascot-face{border-color:#f5f5f5!important;background:linear-gradient(145deg,#fff 0%,#cfcfcf 45%,#777 100%)!important;box-shadow:inset 0 -7px 12px #0002,0 0 0 4px #ffffff10!important}
+.lc-mascot-ear{background:linear-gradient(145deg,#f5f5f5,#888)!important;border-color:#eee!important}
+.lc-mascot-eye{background:#171717!important}.lc-mascot-mouth{border-bottom-color:#222!important}
+.lc-mascot-arm{background:linear-gradient(180deg,#fff,#999)!important;border-color:#eee!important;box-shadow:0 3px 8px #0003!important}
+.lc-mascot-caption{color:#bdbdbd!important}
+.lc-public-card{box-shadow:none!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
