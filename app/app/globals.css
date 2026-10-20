@@ -4,3 +4,30 @@
 
 /* Mobile app access + install */
 .app-install-card{margin:24px auto 0;max-width:720px;padding:26px;border:1px solid #34313b;border-radius:22px;background:linear-gradient(145deg,#15131a,#0c0b0f);text-align:center}.app-install-actions,.access-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.install-help{color:#b9b5c2;line-height:1.9;margin:18px auto 0;max-width:560px;font-size:.94rem}.access-page{min-height:100vh;padding:28px 18px;display:flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at top,#281536 0%,#0a090d 55%);}.access-card{width:min(100%,480px);margin:auto;padding:32px 24px;border:1px solid #37313f;border-radius:24px;background:#111014;text-align:center;box-shadow:0 20px 70px #0008}.access-card h1{font-size:clamp(1.7rem,5vw,2.5rem);margin:10px 0}.access-card>p:not(.eyebrow){color:#b9b5c2;line-height:1.9}.access-buttons{margin:26px 0 20px}.back-home{color:#c7a4ff;text-decoration:none;font-size:.94rem}.nav-actions .button{white-space:nowrap}@media(max-width:560px){.app-install-card{padding:20px 14px}.app-install-actions .button,.access-buttons .button{width:100%}.access-card{padding:26px 18px}}
+
+/* LUMOCARD MONOCHROME THEME — preserves existing components and behavior */
+:root{--bg:#080808;--panel:#111111;--text:#f7f7f7;--muted:#a5a5a5;--line:#303030;--purple:#e8e8e8;--purple2:#ffffff}
+body{background:#080808;color:#f7f7f7}
+.brand span,.eyebrow,.feature-number,.preview-url,.under-form a,.text-link,.url-box a,.public-job,.back-home{color:#f5f5f5!important}
+.button{background:linear-gradient(115deg,#f2f2f2,#cfcfcf)!important;color:#090909!important;border-color:#fff!important;box-shadow:0 7px 30px #ffffff12!important}
+.button-ghost{background:#ffffff06!important;color:#f7f7f7!important;border-color:#383838!important;box-shadow:none!important}
+.gradient-text{background:linear-gradient(90deg,#fff,#bcbcbc,#f8f8f8)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+.dot{background:#fff!important;box-shadow:0 0 12px #fff5!important}
+.preview-card,.public-profile{border-color:#393939!important;background:radial-gradient(ellipse at 20% 0%,#242424,#111 55%,#080808)!important}
+.preview-logo{background:#f4f4f4!important;color:#080808!important}
+.avatar-placeholder,.public-avatar{border-color:#e4e4e4!important;background:linear-gradient(140deg,#202020,#555)!important}
+.glow-one,.glow-two{background:#fff!important;opacity:.055!important}
+.feature,.section-card,.app-install-card{border-color:#303030!important;background:linear-gradient(145deg,#171717,#0c0c0c)!important}
+.cta{border-color:#343434!important;background:radial-gradient(ellipse at top,#222,#111 65%)!important}
+.panel{border-color:#303030!important;background:#111!important}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#eee!important;box-shadow:0 0 0 3px #ffffff12!important}
+.template-option input:checked+.template-box{border-color:#eee!important;background:#ffffff12!important;color:#fff!important}
+.url-box{border-color:#383838!important;background:#171717!important}
+.url-box span{color:#f5f5f5!important}
+.social-link:hover{border-color:#eee!important}
+.access-page{background:radial-gradient(ellipse at top,#202020 0%,#0a0a0a 55%)!important}
+.access-card{border-color:#363636!important;background:#111!important}
+.lc-home-profile{background:radial-gradient(ellipse at 50% 0%,#222 0%,#0b0b0b 38%,#070707 75%)!important}
+.lc-home-avatar{border-color:#eee!important;color:#fff!important;background:linear-gradient(145deg,#252525,#666)!important;box-shadow:0 0 0 10px #ffffff0b,0 0 70px #ffffff10!important}
+.lc-link-icon{background:#ffffff12!important}
+.lc-profile-link{border-color:#303030!important}
